@@ -12,7 +12,7 @@ namespace Desalgoritmizacao.Bootstrap
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureBootstrap()
         {
-            if (Object.FindObjectOfType<DesalgoritmizacaoApp>() != null)
+            if (Object.FindFirstObjectByType<DesalgoritmizacaoApp>() != null)
             {
                 return;
             }
@@ -21,7 +21,7 @@ namespace Desalgoritmizacao.Bootstrap
             Object.DontDestroyOnLoad(root);
             root.AddComponent<DesalgoritmizacaoApp>();
 
-            if (Object.FindObjectOfType<EventSystem>() == null)
+            if (Object.FindFirstObjectByType<EventSystem>() == null)
             {
                 GameObject eventSystemGo = new GameObject("EventSystem");
                 Object.DontDestroyOnLoad(eventSystemGo);

@@ -14,6 +14,8 @@ namespace Desalgoritmizacao.Data
         [TextArea(2, 4)] public string dashboardSummary = "Resumo da central.";
 
         [Header("Primary Labels")]
+        public string initialMenuStartButtonLabel = "Iniciar";
+        public string initialMenuQuitButtonLabel = "Sair do jogo";
         public string startButtonLabel = "Iniciar operação";
         public string queueTitle = "Fila ativa";
         public string beginCaseButtonLabel = "Analisar próximo caso";

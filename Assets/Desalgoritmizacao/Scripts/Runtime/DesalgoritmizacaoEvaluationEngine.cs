@@ -101,6 +101,11 @@ namespace Desalgoritmizacao.Runtime
             return evaluated;
         }
 
+        public static FinalEvaluation EvaluateFinal(DesalgoritmizacaoSessionState state, AppThemeConfig theme)
+        {
+            return EvaluateFinalState(state);
+        }
+
         public static FinalEvaluation EvaluateFinalState(DesalgoritmizacaoSessionState state)
         {
             FinalEvaluation evaluation = new FinalEvaluation
