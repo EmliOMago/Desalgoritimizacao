@@ -1,4 +1,5 @@
 using UnityEngine;
+using Desalgoritmizacao.Scene;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -16,6 +17,12 @@ namespace Desalgoritmizacao.World
 
         private void Awake()
         {
+            if (Object.FindFirstObjectByType<DesalgoritmizacaoSceneRig>() != null)
+            {
+                enabled = false;
+                return;
+            }
+
             initialLocalRotation = transform.localRotation;
         }
 

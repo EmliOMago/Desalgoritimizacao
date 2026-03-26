@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Desalgoritmizacao.Data;
 using Desalgoritmizacao.Runtime;
 using Desalgoritmizacao.World;
+using Desalgoritmizacao.Scene;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -34,6 +35,7 @@ namespace Desalgoritmizacao.UI
         private RectTransform contentRoot;
         private RectTransform initialMenuRoot;
         private DesalgoritmizacaoScreenAnchor screenAnchor;
+        private DesalgoritmizacaoSceneRig sceneRig;
         private Camera uiCamera;
         private Text headerTitleText;
         private Text headerSubtitleText;
@@ -61,7 +63,6 @@ namespace Desalgoritmizacao.UI
             LoadData();
             session.ResetFromTheme(theme);
             BuildInitialMenuCanvas();
-            BuildShell();
             ShowMenu();
         }
 
@@ -141,43 +142,63 @@ namespace Desalgoritmizacao.UI
             }
         }
 
+        private void EnsureGameplayShell()
+        {
+            if (mainCanvas == null || contentRoot == null)
+            {
+                BuildShell();
+            }
+        }
+
         private void BuildShell()
         {
             GameObject canvasGo = null;
-            GameObject prefab = Resources.Load<GameObject>("Desalgoritmizacao/Prefabs/DesalgoritmizacaoCanvasShell");
-            Transform parent = screenAnchor != null ? screenAnchor.MainParent : transform;
-            if (prefab != null)
+            if (sceneRig != null)
             {
-                canvasGo = Instantiate(prefab, parent);
-                canvasGo.name = "DesalgoritmizacaoCanvas";
+                mainCanvas = sceneRig.GetOrCreateCanvasInstance(
+                    "DesalgoritmizacaoCanvas",
+                    "Desalgoritmizacao/Prefabs/DesalgoritmizacaoCanvasShell",
+                    sceneRig.GameplayAnchor,
+                    theme.backgroundColor);
+                canvasGo = mainCanvas.gameObject;
             }
-
-            if (canvasGo == null)
+            else
             {
-                canvasGo = new GameObject("DesalgoritmizacaoCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(Image));
-                canvasGo.transform.SetParent(parent, false);
+                GameObject prefab = Resources.Load<GameObject>("Desalgoritmizacao/Prefabs/DesalgoritmizacaoCanvasShell");
+                Transform parent = screenAnchor != null ? screenAnchor.MainParent : transform;
+                if (prefab != null)
+                {
+                    canvasGo = Instantiate(prefab, parent);
+                    canvasGo.name = "DesalgoritmizacaoCanvas";
+                }
 
-                GameObject headerGo = UIFactory.CreateUIObject("Header", canvasGo.transform);
-                headerRoot = headerGo.GetComponent<RectTransform>();
-                UIFactory.SetAnchors(headerRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(24f, -108f), new Vector2(-24f, -24f));
-                headerGo.AddComponent<Image>();
+                if (canvasGo == null)
+                {
+                    canvasGo = new GameObject("DesalgoritmizacaoCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(Image));
+                    canvasGo.transform.SetParent(parent, false);
 
-                GameObject headerTitleGo = UIFactory.CreateUIObject("HeaderTitle", headerGo.transform);
-                headerTitleText = headerTitleGo.AddComponent<Text>();
-                headerTitleText.font = UIFactory.DefaultFont;
-                headerTitleText.alignment = TextAnchor.UpperLeft;
-                headerTitleText.fontStyle = FontStyle.Bold;
-                UIFactory.SetAnchors(headerTitleText.rectTransform, new Vector2(0f, 0f), new Vector2(0.65f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -16f));
+                    GameObject headerGo = UIFactory.CreateUIObject("Header", canvasGo.transform);
+                    headerRoot = headerGo.GetComponent<RectTransform>();
+                    UIFactory.SetAnchors(headerRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(24f, -108f), new Vector2(-24f, -24f));
+                    headerGo.AddComponent<Image>();
 
-                GameObject headerSubtitleGo = UIFactory.CreateUIObject("HeaderSubtitle", headerGo.transform);
-                headerSubtitleText = headerSubtitleGo.AddComponent<Text>();
-                headerSubtitleText.font = UIFactory.DefaultFont;
-                headerSubtitleText.alignment = TextAnchor.LowerLeft;
-                UIFactory.SetAnchors(headerSubtitleText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -18f));
+                    GameObject headerTitleGo = UIFactory.CreateUIObject("HeaderTitle", headerGo.transform);
+                    headerTitleText = headerTitleGo.AddComponent<Text>();
+                    headerTitleText.font = UIFactory.DefaultFont;
+                    headerTitleText.alignment = TextAnchor.UpperLeft;
+                    headerTitleText.fontStyle = FontStyle.Bold;
+                    UIFactory.SetAnchors(headerTitleText.rectTransform, new Vector2(0f, 0f), new Vector2(0.65f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -16f));
 
-                GameObject contentGo = UIFactory.CreateUIObject("Content", canvasGo.transform);
-                contentRoot = contentGo.GetComponent<RectTransform>();
-                UIFactory.SetAnchors(contentRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 24f), new Vector2(-24f, -124f));
+                    GameObject headerSubtitleGo = UIFactory.CreateUIObject("HeaderSubtitle", headerGo.transform);
+                    headerSubtitleText = headerSubtitleGo.AddComponent<Text>();
+                    headerSubtitleText.font = UIFactory.DefaultFont;
+                    headerSubtitleText.alignment = TextAnchor.LowerLeft;
+                    UIFactory.SetAnchors(headerSubtitleText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -18f));
+
+                    GameObject contentGo = UIFactory.CreateUIObject("Content", canvasGo.transform);
+                    contentRoot = contentGo.GetComponent<RectTransform>();
+                    UIFactory.SetAnchors(contentRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 24f), new Vector2(-24f, -124f));
+                }
             }
 
             mainCanvas = canvasGo.GetComponent<Canvas>();
@@ -194,7 +215,7 @@ namespace Desalgoritmizacao.UI
                 scaler = canvasGo.AddComponent<CanvasScaler>();
             }
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = screenAnchor != null ? screenAnchor.canvasReferenceResolution : new Vector2(1600f, 900f);
+            scaler.referenceResolution = sceneRig != null ? sceneRig.CanvasSize : (screenAnchor != null ? screenAnchor.canvasReferenceResolution : new Vector2(1600f, 900f));
             scaler.matchWidthOrHeight = 0.5f;
 
             if (canvasGo.GetComponent<GraphicRaycaster>() == null)
@@ -239,6 +260,15 @@ namespace Desalgoritmizacao.UI
 
         private void ResolveSceneAnchor()
         {
+            sceneRig = Object.FindFirstObjectByType<DesalgoritmizacaoSceneRig>();
+            if (sceneRig != null)
+            {
+                sceneRig.EnsureRuntimeObjects();
+                screenAnchor = null;
+                uiCamera = sceneRig.ResolveCamera();
+                return;
+            }
+
             screenAnchor = Object.FindFirstObjectByType<DesalgoritmizacaoScreenAnchor>();
             if (screenAnchor != null)
             {
@@ -260,7 +290,22 @@ namespace Desalgoritmizacao.UI
                 return;
             }
 
-            if (screenAnchor != null)
+            if (sceneRig != null)
+            {
+                targetCanvas.renderMode = RenderMode.WorldSpace;
+                targetCanvas.worldCamera = uiCamera;
+                targetCanvas.sortingOrder = isMainCanvas ? 20 : 30;
+                Transform anchor = isMainCanvas ? sceneRig.GameplayAnchor : sceneRig.MenuAnchor;
+                rectTransform.SetParent(anchor != null ? anchor : sceneRig.transform, false);
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                rectTransform.sizeDelta = sceneRig.CanvasSize;
+                rectTransform.localScale = Vector3.one * 0.0012f;
+                rectTransform.localPosition = Vector3.zero;
+                rectTransform.localRotation = Quaternion.identity;
+            }
+            else if (screenAnchor != null)
             {
                 targetCanvas.renderMode = RenderMode.WorldSpace;
                 targetCanvas.worldCamera = uiCamera;
@@ -284,16 +329,33 @@ namespace Desalgoritmizacao.UI
 
         private void BuildInitialMenuCanvas()
         {
+            if (initialMenuCanvas != null)
+            {
+                Destroy(initialMenuCanvas.gameObject);
+                initialMenuCanvas = null;
+            }
+
             GameObject canvasGo = new GameObject("InitialMenuCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(Image));
-            Transform parent = screenAnchor != null ? screenAnchor.MenuParent : transform;
-            canvasGo.transform.SetParent(parent, false);
+            canvasGo.transform.SetParent(transform, false);
 
             initialMenuCanvas = canvasGo.GetComponent<Canvas>();
-            ConfigureCanvas(initialMenuCanvas, canvasGo.GetComponent<RectTransform>(), false);
+            initialMenuCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            initialMenuCanvas.worldCamera = null;
+            initialMenuCanvas.sortingOrder = 2000;
+            initialMenuCanvas.pixelPerfect = false;
+
+            RectTransform canvasRect = canvasGo.GetComponent<RectTransform>();
+            canvasRect.anchorMin = Vector2.zero;
+            canvasRect.anchorMax = Vector2.one;
+            canvasRect.offsetMin = Vector2.zero;
+            canvasRect.offsetMax = Vector2.zero;
+            canvasRect.localScale = Vector3.one;
+            canvasRect.localPosition = Vector3.zero;
+            canvasRect.localRotation = Quaternion.identity;
 
             CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = screenAnchor != null ? screenAnchor.canvasReferenceResolution : new Vector2(1600f, 900f);
+            scaler.referenceResolution = new Vector2(1600f, 900f);
             scaler.matchWidthOrHeight = 0.5f;
 
             Image background = canvasGo.GetComponent<Image>();
@@ -301,25 +363,29 @@ namespace Desalgoritmizacao.UI
 
             GameObject root = UIFactory.CreateUIObject("InitialMenuRoot", canvasGo.transform);
             initialMenuRoot = root.GetComponent<RectTransform>();
-            UIFactory.SetAnchors(initialMenuRoot, new Vector2(0.18f, 0.12f), new Vector2(0.82f, 0.88f), Vector2.zero, Vector2.zero);
-            Image rootImage = root.AddComponent<Image>();
-            rootImage.color = theme != null ? theme.surfaceColor : new Color(0.11f, 0.13f, 0.18f, 1f);
-            UIFactory.AddVerticalLayout(root, 18, new RectOffset(24, 24, 24, 24), false);
+            UIFactory.SetAnchors(initialMenuRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
 
-            GameObject imageGo = UIFactory.CreateUIObject("MenuImage", initialMenuRoot);
-            RectTransform imageRect = imageGo.GetComponent<RectTransform>();
+            Image rootImage = root.AddComponent<Image>();
+            rootImage.color = new Color(0f, 0f, 0f, 0f);
+
+            GameObject body = UIFactory.CreateUIObject("Body", initialMenuRoot);
+            RectTransform bodyRect = body.GetComponent<RectTransform>();
+            UIFactory.SetAnchors(bodyRect, new Vector2(0.12f, 0.08f), new Vector2(0.88f, 0.92f), Vector2.zero, Vector2.zero);
+            UIFactory.AddVerticalLayout(body, 20, new RectOffset(24, 24, 24, 24), false);
+
+            GameObject imageGo = UIFactory.CreateUIObject("MenuImage", body.transform);
             Image menuImage = imageGo.AddComponent<Image>();
             menuImage.color = screenAnchor != null ? screenAnchor.initialMenuTint : Color.white;
             menuImage.sprite = ResolveInitialMenuSprite();
             menuImage.preserveAspect = true;
-            UIFactory.AddLayoutElement(imageGo, preferredHeight: 420f, minHeight: 240f, flexibleHeight: 1f);
+            UIFactory.AddLayoutElement(imageGo, preferredHeight: 540f, minHeight: 260f, flexibleHeight: 1f);
 
-            GameObject buttonsRow = UIFactory.CreateUIObject("ButtonsRow", initialMenuRoot);
-            UIFactory.AddHorizontalLayout(buttonsRow, 18, new RectOffset(0, 0, 0, 0), true);
-            UIFactory.AddLayoutElement(buttonsRow, preferredHeight: 72f, minHeight: 72f);
+            GameObject buttonsRow = UIFactory.CreateUIObject("ButtonsRow", body.transform);
+            UIFactory.AddHorizontalLayout(buttonsRow, 20, new RectOffset(0, 0, 0, 0), true);
+            UIFactory.AddLayoutElement(buttonsRow, preferredHeight: 78f, minHeight: 78f);
 
             Button startButton = UIFactory.CreateButton(buttonsRow.transform, theme != null ? theme.startButtonLabel : "Iniciar", theme != null ? theme.systemAccentColor : Color.cyan, theme != null ? theme.textPrimaryColor : Color.white, 22);
-            UIFactory.AddLayoutElement(startButton.gameObject, preferredHeight: 72f, preferredWidth: 320f);
+            UIFactory.AddLayoutElement(startButton.gameObject, preferredHeight: 78f, preferredWidth: 340f);
             startButton.onClick.AddListener(() =>
             {
                 session.ResetFromTheme(theme);
@@ -332,7 +398,7 @@ namespace Desalgoritmizacao.UI
 
             string quitLabel = theme != null && !string.IsNullOrWhiteSpace(theme.quitGameButtonLabel) ? theme.quitGameButtonLabel : "Sair do jogo";
             Button quitButton = UIFactory.CreateButton(buttonsRow.transform, quitLabel, theme != null ? theme.elevatedSurfaceColor : new Color(0.15f, 0.18f, 0.24f, 1f), theme != null ? theme.textPrimaryColor : Color.white, 22);
-            UIFactory.AddLayoutElement(quitButton.gameObject, preferredHeight: 72f, preferredWidth: 320f);
+            UIFactory.AddLayoutElement(quitButton.gameObject, preferredHeight: 78f, preferredWidth: 340f);
             quitButton.onClick.AddListener(QuitGame);
 
             initialMenuCanvas.enabled = true;
@@ -414,6 +480,8 @@ namespace Desalgoritmizacao.UI
 
         private Transform LoadScreen(string resourcePath, string fallbackName)
         {
+            EnsureGameplayShell();
+
             if (initialMenuCanvas != null)
             {
                 initialMenuCanvas.enabled = false;
@@ -703,6 +771,7 @@ namespace Desalgoritmizacao.UI
 
         private void ShowDashboard()
         {
+            EnsureGameplayShell();
             currentScreen = ScreenState.Dashboard;
             activeCase = session.CurrentCase(cases);
             SetHeader("Central de triagem", theme.dashboardSummary);

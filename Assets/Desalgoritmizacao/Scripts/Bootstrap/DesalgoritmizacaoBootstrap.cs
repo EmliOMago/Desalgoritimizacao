@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Desalgoritmizacao.UI;
 using Desalgoritmizacao.World;
+using Desalgoritmizacao.Scene;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem.UI;
 #endif
@@ -38,7 +39,9 @@ namespace Desalgoritmizacao.Bootstrap
                 sceneCamera = Object.FindFirstObjectByType<Camera>();
             }
 
-            if (sceneCamera != null && sceneCamera.GetComponent<DesalgoritmizacaoTemporaryCameraLook>() == null)
+            if (Object.FindFirstObjectByType<DesalgoritmizacaoSceneRig>() == null &&
+                sceneCamera != null &&
+                sceneCamera.GetComponent<DesalgoritmizacaoTemporaryCameraLook>() == null)
             {
                 sceneCamera.gameObject.AddComponent<DesalgoritmizacaoTemporaryCameraLook>();
             }
