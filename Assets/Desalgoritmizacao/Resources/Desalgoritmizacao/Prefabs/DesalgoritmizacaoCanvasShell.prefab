@@ -30,7 +30,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 22400001}
-  - {fileID: 22400002}
+  - {fileID: 22400004}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -87,8 +87,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 22400002}
   - {fileID: 22400003}
-  - {fileID: 22400004}
   m_Father: {fileID: 22400000}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -106,7 +106,7 @@ GameObject:
   m_Component:
   - component: {fileID: 22400002}
   m_Layer: 5
-  m_Name: Content
+  m_Name: HeaderTitle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -123,13 +123,14 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 22400000}
+  m_Children:
+  []
+  m_Father: {fileID: 22400001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -50}
-  m_SizeDelta: {x: -48, y: -148}
+  m_AnchorMax: {x: 0.65, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -48, y: -32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &100003
 GameObject:
@@ -141,7 +142,7 @@ GameObject:
   m_Component:
   - component: {fileID: 22400003}
   m_Layer: 5
-  m_Name: HeaderTitle
+  m_Name: HeaderSubtitle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -158,11 +159,12 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  []
   m_Father: {fileID: 22400001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0.65, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -48, y: -32}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -176,7 +178,7 @@ GameObject:
   m_Component:
   - component: {fileID: 22400004}
   m_Layer: 5
-  m_Name: HeaderSubtitle
+  m_Name: Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -193,11 +195,12 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 22400001}
+  m_Children:
+  []
+  m_Father: {fileID: 22400000}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -48, y: -32}
+  m_AnchoredPosition: {x: 0, y: -50}
+  m_SizeDelta: {x: -48, y: -148}
   m_Pivot: {x: 0.5, y: 0.5}
