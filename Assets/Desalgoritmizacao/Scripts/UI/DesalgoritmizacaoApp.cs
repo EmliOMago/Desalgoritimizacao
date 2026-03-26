@@ -179,7 +179,7 @@ namespace Desalgoritmizacao.UI
 
                     GameObject headerGo = UIFactory.CreateUIObject("Header", canvasGo.transform);
                     headerRoot = headerGo.GetComponent<RectTransform>();
-                    UIFactory.SetAnchors(headerRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(24f, -108f), new Vector2(-24f, -24f));
+                    UIFactory.SetAnchors(headerRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(24f, -128f), new Vector2(-24f, -24f));
                     headerGo.AddComponent<Image>();
 
                     GameObject headerTitleGo = UIFactory.CreateUIObject("HeaderTitle", headerGo.transform);
@@ -187,17 +187,17 @@ namespace Desalgoritmizacao.UI
                     headerTitleText.font = UIFactory.DefaultFont;
                     headerTitleText.alignment = TextAnchor.UpperLeft;
                     headerTitleText.fontStyle = FontStyle.Bold;
-                    UIFactory.SetAnchors(headerTitleText.rectTransform, new Vector2(0f, 0f), new Vector2(0.65f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -16f));
+                    UIFactory.SetAnchors(headerTitleText.rectTransform, new Vector2(0f, 0.46f), new Vector2(1f, 1f), new Vector2(24f, 8f), new Vector2(-24f, -8f));
 
                     GameObject headerSubtitleGo = UIFactory.CreateUIObject("HeaderSubtitle", headerGo.transform);
                     headerSubtitleText = headerSubtitleGo.AddComponent<Text>();
                     headerSubtitleText.font = UIFactory.DefaultFont;
                     headerSubtitleText.alignment = TextAnchor.LowerLeft;
-                    UIFactory.SetAnchors(headerSubtitleText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -18f));
+                    UIFactory.SetAnchors(headerSubtitleText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.42f), new Vector2(24f, 8f), new Vector2(-24f, -8f));
 
                     GameObject contentGo = UIFactory.CreateUIObject("Content", canvasGo.transform);
                     contentRoot = contentGo.GetComponent<RectTransform>();
-                    UIFactory.SetAnchors(contentRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 24f), new Vector2(-24f, -124f));
+                    UIFactory.SetAnchors(contentRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 24f), new Vector2(-24f, -148f));
                 }
             }
 
