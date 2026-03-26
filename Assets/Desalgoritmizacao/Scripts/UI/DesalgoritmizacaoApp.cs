@@ -292,18 +292,8 @@ namespace Desalgoritmizacao.UI
 
             if (sceneRig != null)
             {
-                targetCanvas.renderMode = RenderMode.WorldSpace;
-                targetCanvas.worldCamera = uiCamera;
+                sceneRig.ApplyCanvasPlacement(targetCanvas, isMainCanvas, theme != null ? theme.backgroundColor : Color.black);
                 targetCanvas.sortingOrder = isMainCanvas ? 20 : 30;
-                Transform anchor = isMainCanvas ? sceneRig.GameplayAnchor : sceneRig.MenuAnchor;
-                rectTransform.SetParent(anchor != null ? anchor : sceneRig.transform, false);
-                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                rectTransform.sizeDelta = sceneRig.CanvasSize;
-                rectTransform.localScale = Vector3.one * 0.0012f;
-                rectTransform.localPosition = Vector3.zero;
-                rectTransform.localRotation = Quaternion.identity;
             }
             else if (screenAnchor != null)
             {

@@ -105,6 +105,12 @@ namespace Desalgoritmizacao.Scene
             return canvas;
         }
 
+        public void ApplyCanvasPlacement(Canvas canvas, bool isMainCanvas, Color fallbackColor)
+        {
+            EnsureRuntimeObjects();
+            ConfigureWorldCanvas(canvas, isMainCanvas ? gameplayAnchor : menuAnchor, fallbackColor);
+        }
+
         private void ConfigureWorldCanvas(Canvas canvas, Transform anchor, Color fallbackColor)
         {
             if (canvas == null)
