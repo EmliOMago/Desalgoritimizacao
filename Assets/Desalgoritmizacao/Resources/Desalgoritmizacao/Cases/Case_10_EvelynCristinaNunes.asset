@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8663747f8e5be1abeeb00039de3d28, type: 3}
+  m_Name: Case_10_EvelynCristinaNunes
+  m_EditorClassIdentifier: 
+  order: 10
+  caseId: "CASO-010"
+  cycleId: "Ciclo 2 · Comércio"
+  opportunityTitle: "Programa de Vendas de Bairro"
+  candidateName: "Evelyn Cristina Nunes"
+  candidateAge: 27
+  district: "Jardim União"
+  interestArea: "Comércio"
+  applicationObjective: "Estruturar pequeno negócio de roupas usadas com apoio local."
+  profileSummary: "Evelyn vende peças pela vizinhança, organiza entregas e atende por mensagens de celular."
+  publicTraceSummary: "Baixa formalização, poucos dados bancários e atividade digital pulverizada."
+  algorithm:
+    score: 40
+    recommendedPriority: "Baixa"
+    estimatedFit: "aderência incerta"
+    dropoutRisk: "Alto"
+    documentReliability: "Parcial"
+    engagementPattern: "Fragmentado"
+    keywords:
+    - "informalidade"
+    - "atividade pulverizada"
+    - "baixo lastro"
+    automaticJustification: "A plataforma favorece perfis com operação mais formalizada."
+    blindSpotHint: "A leitura não enxerga organização econômica fora do padrão bancário."
+    suggestedDecisionLabel: "Seguir recomendação automática"
+  investigationLayers:
+  - layerId: "trajetoria"
+    buttonLabel: "Trajetória local"
+    shortHint: "Há lastro social fora do padrão digital."
+    revealTag: "histórico"
+    content: "Registros locais e relatos do território mostram continuidade de atuação mesmo sem documentação formal robusta."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "restricoes"
+    buttonLabel: "Condições de acesso"
+    shortHint: "O contexto de acesso altera a leitura do score."
+    revealTag: "acesso"
+    content: "O caso indica barreiras de equipamento, tempo, renda ou infraestrutura que ajudam a explicar a baixa legibilidade digital."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "referencia"
+    buttonLabel: "Referência externa"
+    shortHint: "Uma outra voz ajuda a medir confiança."
+    revealTag: "referência"
+    content: "Uma liderança local, educador ou parceiro confirma a utilidade social do perfil e sua capacidade de compromisso."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  decisionOptions:
+  - optionId: "auto_10"
+    label: "Validar filtro automático"
+    visuallyPrimary: 1
+    matchesAlgorithmRecommendation: 1
+    justification: "Mantém a confiança no score e reduz tempo de análise."
+    immediateFeedback: "A central encerra o caso de forma rápida e coerente com a automação."
+    impact:
+      operationalEfficiency: 2
+      communityTrust: -2
+      systemSensitivity: -2
+  - optionId: "pendencia_10"
+    label: "Pedir complementação"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Reconhece dúvida, mas empurra parte do custo de prova para a pessoa candidata."
+    immediateFeedback: "O caso continua aberto, porém com nova exigência burocrática."
+    impact:
+      operationalEfficiency: 0
+      communityTrust: 1
+      systemSensitivity: 1
+  - optionId: "excecao_10"
+    label: "Aprovar com ressalva"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Assume que o contexto revelado pesa mais do que a legibilidade inicial do sistema."
+    immediateFeedback: "A central registra exceção justificada e amplia a sensibilidade do processo."
+    impact:
+      operationalEfficiency: -1
+      communityTrust: 3
+      systemSensitivity: 3
+  afterCaseMessage: "A decisão deste caso redefine como a central trata trajetórias parecidas nas próximas leituras."

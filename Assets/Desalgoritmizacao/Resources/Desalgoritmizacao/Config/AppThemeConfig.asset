@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameTitle: "Desalgoritmização"
   presentationLine: "Nem toda trajetória cabe no perfil que o sistema enxerga."
-  menuIntro: "Você opera uma central digital que distribui acesso a oportunidades locais. O sistema foi desenhado para prometer neutralidade, velocidade e escala, mas a cada candidatura fica mais claro que legibilidade digital não é o mesmo que potencial humano. Nesta fundação jogável, a interface já empurra você para a validação rápida da automação, enquanto o contexto humano exige passos extras, leitura atenta e decisões justificadas."
-  dashboardSummary: "A central organiza candidaturas, registra o impacto acumulado das suas escolhas e deixa clara a disputa entre produtividade institucional, confiança comunitária e sensibilidade do sistema."
+  menuIntro: "Você opera uma central que distribui acesso a oportunidades locais. O algoritmo lê primeiro. O contexto precisa ser investigado."
+  dashboardSummary: "A central organiza casos, decisões e impacto acumulado entre eficiência, confiança e sensibilidade."
   startButtonLabel: "Iniciar operação"
   queueTitle: "Fila de candidaturas"
   beginCaseButtonLabel: "Analisar próximo caso"
@@ -30,11 +30,18 @@ MonoBehaviour:
   returnToDashboardLabel: "Voltar à central"
   sessionSummaryTitle: "Síntese do ciclo"
   decisionLogTitle: "Histórico de decisões"
+  scrollIndicatorLabel: "Role para ver mais"
   startingOperationalEfficiency: 58
   startingCommunityTrust: 52
   startingSystemSensitivity: 34
   recommendedAnalysisSeconds: 45.0
   slowPenaltyIntervalSeconds: 25.0
+  smallTextScale: 1.0
+  bodyTextScale: 1.0
+  headingTextScale: 1.0
+  titleTextScale: 1.0
+  minimumReadableFontSize: 12
+  scrollbarWidth: 16
   backgroundColor: {r: 0.07, g: 0.08, b: 0.11, a: 1.0}
   surfaceColor: {r: 0.11, g: 0.13, b: 0.18, a: 1.0}
   elevatedSurfaceColor: {r: 0.15, g: 0.18, b: 0.24, a: 1.0}

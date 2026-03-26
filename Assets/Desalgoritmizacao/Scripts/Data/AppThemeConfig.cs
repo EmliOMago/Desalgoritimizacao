@@ -10,8 +10,8 @@ namespace Desalgoritmizacao.Data
         [Header("Project Identity")]
         public string gameTitle = "Desalgoritmizacao";
         public string presentationLine = "Nem toda trajetória cabe no perfil que o sistema enxerga.";
-        [TextArea(3, 8)] public string menuIntro = "Texto de abertura.";
-        [TextArea(2, 6)] public string dashboardSummary = "Resumo da central.";
+        [TextArea(2, 6)] public string menuIntro = "Você opera uma central de triagem.";
+        [TextArea(2, 4)] public string dashboardSummary = "Resumo da central.";
 
         [Header("Primary Labels")]
         public string startButtonLabel = "Iniciar operação";
@@ -28,6 +28,7 @@ namespace Desalgoritmizacao.Data
         public string returnToDashboardLabel = "Voltar à central";
         public string sessionSummaryTitle = "Síntese do ciclo";
         public string decisionLogTitle = "Histórico de decisões";
+        public string scrollIndicatorLabel = "Role para ver mais";
 
         [Header("Simulation Defaults")]
         [Range(0, 100)] public int startingOperationalEfficiency = 58;
@@ -35,6 +36,14 @@ namespace Desalgoritmizacao.Data
         [Range(0, 100)] public int startingSystemSensitivity = 34;
         [Min(5f)] public float recommendedAnalysisSeconds = 45f;
         [Min(5f)] public float slowPenaltyIntervalSeconds = 25f;
+
+        [Header("Typography")]
+        [Min(0.6f)] public float smallTextScale = 1.0f;
+        [Min(0.6f)] public float bodyTextScale = 1.0f;
+        [Min(0.6f)] public float headingTextScale = 1.0f;
+        [Min(0.6f)] public float titleTextScale = 1.0f;
+        [Min(10)] public int minimumReadableFontSize = 12;
+        [Min(12)] public int scrollbarWidth = 16;
 
         [Header("Colors")]
         public Color backgroundColor = new Color(0.07f, 0.08f, 0.11f, 1f);
@@ -51,6 +60,16 @@ namespace Desalgoritmizacao.Data
 
         [Header("Ending Catalog")]
         public List<EndingDefinition> endings = new List<EndingDefinition>();
+
+        public int ScaleFont(int baseSize)
+        {
+            float scale = bodyTextScale;
+            if (baseSize >= 28) scale = titleTextScale;
+            else if (baseSize >= 20) scale = headingTextScale;
+            else if (baseSize <= 14) scale = smallTextScale;
+
+            return Mathf.Max(minimumReadableFontSize, Mathf.RoundToInt(baseSize * scale));
+        }
     }
 
     [Serializable]

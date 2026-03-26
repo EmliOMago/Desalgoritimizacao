@@ -5,48 +5,43 @@ namespace Desalgoritmizacao.UI
 {
     public static class UIFactory
     {
-        private static Font cachedFont;
-
-        public static Font DefaultFont
+        public struct FontSettings
         {
-            get
-            {
-                if (cachedFont == null)
-                {
-                    try
-                    {
-                        cachedFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                    }
-                    catch
-                    {
-                        cachedFont = null;
-                    }
+            public float smallScale;
+            public float bodyScale;
+            public float headingScale;
+            public float titleScale;
+            public int minimumFontSize;
+            public int scrollbarWidth;
+        }
 
-                    if (cachedFont == null)
-                    {
-                        try
-                        {
-                            cachedFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                        }
-                        catch
-                        {
-                            cachedFont = null;
-                        }
-                    }
-                }
+        public static FontSettings Fonts = new FontSettings
+        {
+            smallScale = 1f,
+            bodyScale = 1f,
+            headingScale = 1f,
+            titleScale = 1f,
+            minimumFontSize = 12,
+            scrollbarWidth = 16
+        };
 
-                return cachedFont;
-            }
+        private static Font defaultFont;
+        public static Font DefaultFont => defaultFont != null ? defaultFont : (defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+
+        private static int ResolveFontSize(int baseSize)
+        {
+            float scale = Fonts.bodyScale;
+            if (baseSize >= 28) scale = Fonts.titleScale;
+            else if (baseSize >= 20) scale = Fonts.headingScale;
+            else if (baseSize <= 14) scale = Fonts.smallScale;
+
+            return Mathf.Max(Fonts.minimumFontSize, Mathf.RoundToInt(baseSize * scale));
         }
 
         public static GameObject CreateUIObject(string name, Transform parent)
         {
             GameObject go = new GameObject(name, typeof(RectTransform));
-            if (parent != null)
-            {
-                go.transform.SetParent(parent, false);
-            }
-
+            go.transform.SetParent(parent, false);
             return go;
         }
 
@@ -82,7 +77,7 @@ namespace Desalgoritmizacao.UI
             Text text = go.AddComponent<Text>();
             text.font = DefaultFont;
             text.text = content;
-            text.fontSize = fontSize;
+            text.fontSize = ResolveFontSize(fontSize);
             text.color = color;
             text.alignment = anchor;
             text.fontStyle = style;
@@ -172,7 +167,10 @@ namespace Desalgoritmizacao.UI
 
             GameObject viewport = CreateUIObject("Viewport", root.transform);
             RectTransform viewportRect = viewport.GetComponent<RectTransform>();
-            Stretch(viewportRect);
+            viewportRect.anchorMin = new Vector2(0f, 0f);
+            viewportRect.anchorMax = new Vector2(1f, 1f);
+            viewportRect.offsetMin = new Vector2(0f, 0f);
+            viewportRect.offsetMax = new Vector2(-Mathf.Max(12, Fonts.scrollbarWidth + 6), 0f);
             Image viewportImage = viewport.AddComponent<Image>();
             viewportImage.color = viewportColor;
             Mask mask = viewport.AddComponent<Mask>();
@@ -191,8 +189,39 @@ namespace Desalgoritmizacao.UI
             fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
+            GameObject scrollbarGo = CreateUIObject("Scrollbar", root.transform);
+            RectTransform scrollbarRect = scrollbarGo.GetComponent<RectTransform>();
+            scrollbarRect.anchorMin = new Vector2(1f, 0f);
+            scrollbarRect.anchorMax = new Vector2(1f, 1f);
+            scrollbarRect.pivot = new Vector2(1f, 1f);
+            scrollbarRect.offsetMin = new Vector2(-Mathf.Max(12, Fonts.scrollbarWidth), 6f);
+            scrollbarRect.offsetMax = new Vector2(0f, -6f);
+            Image scrollbarBack = scrollbarGo.AddComponent<Image>();
+            scrollbarBack.color = new Color(1f, 1f, 1f, 0.08f);
+            Scrollbar scrollbar = scrollbarGo.AddComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+
+            GameObject slidingArea = CreateUIObject("Sliding Area", scrollbarGo.transform);
+            RectTransform slidingAreaRect = slidingArea.GetComponent<RectTransform>();
+            Stretch(slidingAreaRect);
+            slidingAreaRect.offsetMin = new Vector2(2f, 2f);
+            slidingAreaRect.offsetMax = new Vector2(-2f, -2f);
+
+            GameObject handle = CreateUIObject("Handle", slidingArea.transform);
+            RectTransform handleRect = handle.GetComponent<RectTransform>();
+            Stretch(handleRect);
+            Image handleImage = handle.AddComponent<Image>();
+            handleImage.color = new Color(1f, 1f, 1f, 0.55f);
+
+            scrollbar.handleRect = handleRect;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.size = 0.2f;
+
             scrollRect.viewport = viewportRect;
             scrollRect.content = contentRect;
+            scrollRect.verticalScrollbar = scrollbar;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+            scrollRect.verticalScrollbarSpacing = 6f;
             return scrollRect;
         }
 

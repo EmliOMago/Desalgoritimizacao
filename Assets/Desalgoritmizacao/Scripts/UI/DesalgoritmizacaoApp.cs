@@ -81,9 +81,19 @@ namespace Desalgoritmizacao.UI
                 theme = ScriptableObject.CreateInstance<AppThemeConfig>();
                 theme.gameTitle = "Desalgoritmizacao";
                 theme.presentationLine = "Nem toda trajetória cabe no perfil que o sistema enxerga.";
-                theme.menuIntro = "A configuração principal não foi encontrada. Um tema temporário foi criado em memória para não interromper o fluxo.";
-                theme.dashboardSummary = "A central digital organiza oportunidades locais, mas nem tudo o que importa é legível para o sistema.";
+                theme.menuIntro = "Tema temporário carregado em memória.";
+                theme.dashboardSummary = "A central organiza casos, decisões e impacto acumulado.";
             }
+
+            UIFactory.Fonts = new UIFactory.FontSettings
+            {
+                smallScale = theme.smallTextScale,
+                bodyScale = theme.bodyTextScale,
+                headingScale = theme.headingTextScale,
+                titleScale = theme.titleTextScale,
+                minimumFontSize = theme.minimumReadableFontSize,
+                scrollbarWidth = theme.scrollbarWidth
+            };
 
             if (cases.Count == 0)
             {
@@ -115,36 +125,117 @@ namespace Desalgoritmizacao.UI
 
         private void BuildShell()
         {
-            GameObject canvasGo = new GameObject("DesalgoritmizacaoCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            canvasGo.transform.SetParent(transform, false);
+            GameObject canvasGo = null;
+            GameObject prefab = Resources.Load<GameObject>("Desalgoritmizacao/Prefabs/DesalgoritmizacaoCanvasShell");
+            if (prefab != null)
+            {
+                canvasGo = Instantiate(prefab, transform);
+                canvasGo.name = "DesalgoritmizacaoCanvas";
+            }
+
+            if (canvasGo == null)
+            {
+                canvasGo = new GameObject("DesalgoritmizacaoCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(Image));
+                canvasGo.transform.SetParent(transform, false);
+
+                GameObject headerGo = UIFactory.CreateUIObject("Header", canvasGo.transform);
+                headerRoot = headerGo.GetComponent<RectTransform>();
+                UIFactory.SetAnchors(headerRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(24f, -108f), new Vector2(-24f, -24f));
+                headerGo.AddComponent<Image>();
+
+                GameObject headerTitleGo = UIFactory.CreateUIObject("HeaderTitle", headerGo.transform);
+                headerTitleText = headerTitleGo.AddComponent<Text>();
+                headerTitleText.font = UIFactory.DefaultFont;
+                headerTitleText.alignment = TextAnchor.UpperLeft;
+                headerTitleText.fontStyle = FontStyle.Bold;
+                UIFactory.SetAnchors(headerTitleText.rectTransform, new Vector2(0f, 0f), new Vector2(0.65f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -16f));
+
+                GameObject headerSubtitleGo = UIFactory.CreateUIObject("HeaderSubtitle", headerGo.transform);
+                headerSubtitleText = headerSubtitleGo.AddComponent<Text>();
+                headerSubtitleText.font = UIFactory.DefaultFont;
+                headerSubtitleText.alignment = TextAnchor.LowerLeft;
+                UIFactory.SetAnchors(headerSubtitleText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -18f));
+
+                GameObject contentGo = UIFactory.CreateUIObject("Content", canvasGo.transform);
+                contentRoot = contentGo.GetComponent<RectTransform>();
+                UIFactory.SetAnchors(contentRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 24f), new Vector2(-24f, -124f));
+            }
 
             canvas = canvasGo.GetComponent<Canvas>();
+            if (canvas == null)
+            {
+                canvas = canvasGo.AddComponent<Canvas>();
+            }
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 1000;
 
             CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
+            if (scaler == null)
+            {
+                scaler = canvasGo.AddComponent<CanvasScaler>();
+            }
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1600f, 900f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            Image background = canvasGo.AddComponent<Image>();
+            if (canvasGo.GetComponent<GraphicRaycaster>() == null)
+            {
+                canvasGo.AddComponent<GraphicRaycaster>();
+            }
+
+            ResolveShellNodes(canvasGo.transform);
+
+            Image background = canvasGo.GetComponent<Image>();
+            if (background == null)
+            {
+                background = canvasGo.AddComponent<Image>();
+            }
             background.color = theme.backgroundColor;
 
-            GameObject headerGo = UIFactory.CreateUIObject("Header", canvasGo.transform);
-            headerRoot = headerGo.GetComponent<RectTransform>();
-            UIFactory.SetAnchors(headerRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(24f, -108f), new Vector2(-24f, -24f));
-            Image headerImage = headerGo.AddComponent<Image>();
-            headerImage.color = theme.surfaceColor;
+            if (headerRoot != null)
+            {
+                Image headerImage = headerRoot.GetComponent<Image>();
+                if (headerImage == null)
+                {
+                    headerImage = headerRoot.gameObject.AddComponent<Image>();
+                }
+                headerImage.color = theme.surfaceColor;
+            }
 
-            headerTitleText = UIFactory.CreateText(headerGo.transform, theme.gameTitle, 34, theme.textPrimaryColor, TextAnchor.UpperLeft, FontStyle.Bold);
-            UIFactory.SetAnchors(headerTitleText.rectTransform, new Vector2(0f, 0f), new Vector2(0.65f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -16f));
+            if (headerTitleText != null)
+            {
+                headerTitleText.font = UIFactory.DefaultFont;
+                headerTitleText.fontSize = theme.ScaleFont(34);
+                headerTitleText.color = theme.textPrimaryColor;
+                headerTitleText.alignment = TextAnchor.UpperLeft;
+                headerTitleText.fontStyle = FontStyle.Bold;
+            }
 
-            headerSubtitleText = UIFactory.CreateText(headerGo.transform, string.Empty, 16, theme.textSecondaryColor, TextAnchor.LowerLeft, FontStyle.Normal);
-            UIFactory.SetAnchors(headerSubtitleText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 16f), new Vector2(-24f, -18f));
+            if (headerSubtitleText != null)
+            {
+                headerSubtitleText.font = UIFactory.DefaultFont;
+                headerSubtitleText.fontSize = theme.ScaleFont(16);
+                headerSubtitleText.color = theme.textSecondaryColor;
+                headerSubtitleText.alignment = TextAnchor.LowerLeft;
+            }
+        }
 
-            GameObject contentGo = UIFactory.CreateUIObject("Content", canvasGo.transform);
-            contentRoot = contentGo.GetComponent<RectTransform>();
-            UIFactory.SetAnchors(contentRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(24f, 24f), new Vector2(-24f, -124f));
+        private void ResolveShellNodes(Transform root)
+        {
+            headerRoot = root.Find("Header") as RectTransform;
+            contentRoot = root.Find("Content") as RectTransform;
+
+            Transform title = root.Find("Header/HeaderTitle");
+            if (title != null)
+            {
+                headerTitleText = title.GetComponent<Text>();
+            }
+
+            Transform subtitle = root.Find("Header/HeaderSubtitle");
+            if (subtitle != null)
+            {
+                headerSubtitleText = subtitle.GetComponent<Text>();
+            }
         }
 
         private void SetHeader(string title, string subtitle)
@@ -193,9 +284,9 @@ namespace Desalgoritmizacao.UI
             Image callout = UIFactory.CreatePanel(layoutGo.transform, theme.elevatedSurfaceColor, "Callout");
             UIFactory.AddLayoutElement(callout.gameObject, preferredHeight: 124f);
             UIFactory.AddVerticalLayout(callout.gameObject, 8, new RectOffset(20, 20, 18, 18), false);
-            Text calloutTitle = UIFactory.CreateText(callout.transform, "Princípio desta fundação", 18, theme.humanAccentColor, TextAnchor.MiddleLeft, FontStyle.Bold);
+            Text calloutTitle = UIFactory.CreateText(callout.transform, "Leitura inicial", 18, theme.humanAccentColor, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIFactory.AddLayoutElement(calloutTitle.gameObject, preferredHeight: 26f);
-            Text calloutBody = UIFactory.CreateText(callout.transform, "A interface valoriza a rapidez algorítmica, mas os dados humanos foram mantidos como camadas menos chamativas e mais trabalhosas de acessar. Isso já deixa a base pronta para expandir dilemas, casos e variações sem retrabalho estrutural.", 17, theme.textSecondaryColor, TextAnchor.UpperLeft);
+            Text calloutBody = UIFactory.CreateText(callout.transform, "O algoritmo aparece primeiro. O contexto fica disponível para quem decide investigar.", 17, theme.textSecondaryColor, TextAnchor.UpperLeft);
             UIFactory.AddLayoutElement(calloutBody.gameObject, preferredHeight: 72f);
 
             UIFactory.CreateSpacer(layoutGo.transform, 6f);
@@ -240,12 +331,13 @@ namespace Desalgoritmizacao.UI
             Text queueTitle = UIFactory.CreateText(queuePanel.transform, theme.queueTitle, 22, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIFactory.AddLayoutElement(queueTitle.gameObject, preferredHeight: 32f);
 
-            Text queueHint = UIFactory.CreateText(queuePanel.transform, "O primeiro caso já está pronto para análise. Os demais ficam na fila como lembrete de que produtividade e atenção disputam o mesmo espaço.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
+            Text queueHint = UIFactory.CreateText(queuePanel.transform, "Abra um caso por vez. A barra lateral mostra o restante da fila.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
             UIFactory.AddLayoutElement(queueHint.gameObject, preferredHeight: 58f);
 
             ScrollRect queueScroll = UIFactory.CreateScrollView(queuePanel.transform, theme.surfaceColor, theme.surfaceColor, out RectTransform queueContent);
             UIFactory.AddLayoutElement(queueScroll.gameObject, flexibleHeight: 1f);
             UIFactory.AddVerticalLayout(queueContent.gameObject, 10, new RectOffset(4, 4, 4, 4), false);
+            CreateScrollHint(queuePanel.transform);
 
             for (int i = session.currentCaseIndex; i < cases.Count; i++)
             {
@@ -277,21 +369,22 @@ namespace Desalgoritmizacao.UI
             Text impactTitle = UIFactory.CreateText(right.transform, theme.impactPanelTitle, 22, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIFactory.AddLayoutElement(impactTitle.gameObject, preferredHeight: 30f);
 
-            Text impactHint = UIFactory.CreateText(right.transform, "As decisões já registradas alteram confiança comunitária, eficiência operacional e sensibilidade do sistema.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
+            Text impactHint = UIFactory.CreateText(right.transform, "Cada decisão altera os três indicadores centrais.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
             UIFactory.AddLayoutElement(impactHint.gameObject, preferredHeight: 52f);
 
             ScrollRect logScroll = UIFactory.CreateScrollView(right.transform, theme.elevatedSurfaceColor, theme.elevatedSurfaceColor, out RectTransform logContent);
             UIFactory.AddLayoutElement(logScroll.gameObject, flexibleHeight: 1f);
             UIFactory.AddVerticalLayout(logContent.gameObject, 10, new RectOffset(14, 14, 14, 14), false);
+            CreateScrollHint(right.transform);
 
             if (session.decisionHistory.Count == 0)
             {
                 Image empty = UIFactory.CreatePanel(logContent.transform, theme.surfaceColor, "EmptyState");
                 UIFactory.AddLayoutElement(empty.gameObject, preferredHeight: 120f);
                 UIFactory.AddVerticalLayout(empty.gameObject, 8, new RectOffset(16, 16, 16, 16), false);
-                Text emptyTitle = UIFactory.CreateText(empty.transform, "Nenhuma decisão registrada ainda", 18, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
+                Text emptyTitle = UIFactory.CreateText(empty.transform, "Sem decisões registradas", 18, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
                 UIFactory.AddLayoutElement(emptyTitle.gameObject, preferredHeight: 24f);
-                Text emptyBody = UIFactory.CreateText(empty.transform, "Assim que um caso for encerrado, o histórico aparece aqui com o impacto imediato de cada escolha.", 15, theme.textSecondaryColor, TextAnchor.UpperLeft);
+                Text emptyBody = UIFactory.CreateText(empty.transform, "O histórico aparecerá aqui após a primeira decisão.", 15, theme.textSecondaryColor, TextAnchor.UpperLeft);
                 UIFactory.AddLayoutElement(emptyBody.gameObject, preferredHeight: 56f);
             }
             else
@@ -321,7 +414,7 @@ namespace Desalgoritmizacao.UI
             }
 
             currentScreen = ScreenState.Case;
-            SetHeader(activeCase.cycleId + " · " + activeCase.caseId, "O sistema recomenda rapidez. As camadas humanas exigem mais cliques, mais leitura e mais responsabilidade.");
+            SetHeader(activeCase.cycleId + " · " + activeCase.caseId, "O algoritmo favorece rapidez. O contexto exige investigação.");
             ClearContent();
 
             GameObject root = UIFactory.CreateUIObject("CaseRoot", contentRoot);
@@ -340,14 +433,17 @@ namespace Desalgoritmizacao.UI
             ScrollRect profileScroll = UIFactory.CreateScrollView(profilePanel.transform, theme.surfaceColor, theme.surfaceColor, out RectTransform profileContent);
             UIFactory.Stretch(profileScroll.GetComponent<RectTransform>());
             UIFactory.AddVerticalLayout(profileContent.gameObject, 10, new RectOffset(18, 18, 18, 18), false);
+            CreateScrollHint(profilePanel.transform);
 
             ScrollRect algorithmScroll = UIFactory.CreateScrollView(algorithmPanel.transform, theme.elevatedSurfaceColor, theme.elevatedSurfaceColor, out RectTransform algorithmContent);
             UIFactory.Stretch(algorithmScroll.GetComponent<RectTransform>());
             UIFactory.AddVerticalLayout(algorithmContent.gameObject, 10, new RectOffset(18, 18, 18, 18), false);
+            CreateScrollHint(algorithmPanel.transform);
 
             ScrollRect investigationScroll = UIFactory.CreateScrollView(investigationPanel.transform, theme.surfaceColor, theme.surfaceColor, out RectTransform investigationContent);
             UIFactory.Stretch(investigationScroll.GetComponent<RectTransform>());
             UIFactory.AddVerticalLayout(investigationContent.gameObject, 12, new RectOffset(18, 18, 18, 18), false);
+            CreateScrollHint(investigationPanel.transform);
 
             BuildProfilePanel(profileContent.transform, activeCase);
             BuildAlgorithmPanel(algorithmContent.transform, activeCase);
@@ -453,9 +549,9 @@ namespace Desalgoritmizacao.UI
                 Image locked = UIFactory.CreatePanel(parent, theme.elevatedSurfaceColor, "LockedInvestigation");
                 UIFactory.AddLayoutElement(locked.gameObject, flexibleHeight: 1f);
                 UIFactory.AddVerticalLayout(locked.gameObject, 10, new RectOffset(20, 20, 20, 20), false);
-                Text lockedTitle = UIFactory.CreateText(locked.transform, "Camadas humanas em segundo plano", 22, theme.humanAccentColor, TextAnchor.MiddleLeft, FontStyle.Bold);
+                Text lockedTitle = UIFactory.CreateText(locked.transform, "Investigação ainda fechada", 22, theme.humanAccentColor, TextAnchor.MiddleLeft, FontStyle.Bold);
                 UIFactory.AddLayoutElement(lockedTitle.gameObject, preferredHeight: 30f);
-                Text lockedBody = UIFactory.CreateText(locked.transform, "Nesta fundação, o sistema facilita a validação rápida da recomendação automática. Para investigar contexto, você precisa interromper o fluxo confortável, abrir camadas extras e aceitar o custo de atenção.", 17, theme.textSecondaryColor, TextAnchor.UpperLeft);
+                Text lockedBody = UIFactory.CreateText(locked.transform, "A investigação existe, mas fica fora do fluxo mais confortável da interface.", 17, theme.textSecondaryColor, TextAnchor.UpperLeft);
                 UIFactory.AddLayoutElement(lockedBody.gameObject, preferredHeight: 96f);
                 if (caseData.investigationLayers.Count > 0)
                 {
@@ -476,7 +572,7 @@ namespace Desalgoritmizacao.UI
                 return;
             }
 
-            Text helper = UIFactory.CreateText(parent, "As camadas abaixo não competem visualmente com a automação por acaso. O projeto usa essa fricção como parte da experiência.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
+            Text helper = UIFactory.CreateText(parent, "Estas camadas pedem leitura ativa e mudam a interpretação do caso.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
             UIFactory.AddLayoutElement(helper.gameObject, preferredHeight: 58f);
 
             GameObject tabsRow = UIFactory.CreateUIObject("TabsRow", parent);
@@ -527,6 +623,7 @@ namespace Desalgoritmizacao.UI
             ScrollRect decisionsScroll = UIFactory.CreateScrollView(parent, theme.surfaceColor, theme.surfaceColor, out RectTransform decisionsContent);
             UIFactory.AddLayoutElement(decisionsScroll.gameObject, preferredHeight: 360f);
             UIFactory.AddVerticalLayout(decisionsContent.gameObject, 10, new RectOffset(12, 12, 12, 12), false);
+            CreateScrollHint(parent);
 
             for (int i = 0; i < caseData.decisionOptions.Count; i++)
             {
@@ -580,7 +677,7 @@ namespace Desalgoritmizacao.UI
         private void ShowResult()
         {
             currentScreen = ScreenState.Result;
-            SetHeader("Resultado imediato", "A consequência curta aparece agora. O impacto sistêmico continua se acumulando no painel da central.");
+            SetHeader("Resultado imediato", "O resultado imediato aparece aqui. O impacto total continua acumulando.");
             ClearContent();
 
             GameObject root = UIFactory.CreateUIObject("ResultRoot", contentRoot);
@@ -642,7 +739,7 @@ namespace Desalgoritmizacao.UI
             finalEvaluation = DesalgoritmizacaoEvaluationEngine.EvaluateFinalState(session);
             EndingDefinition ending = FindEnding(finalEvaluation.endingId);
 
-            SetHeader(theme.sessionSummaryTitle, "O ciclo termina, mas a forma como a central aprende com suas decisões aponta o rumo da plataforma.");
+            SetHeader(theme.sessionSummaryTitle, "O ciclo termina. Suas decisões definem o rumo da plataforma.");
             ClearContent();
 
             GameObject root = UIFactory.CreateUIObject("FinalRoot", contentRoot);
@@ -686,7 +783,11 @@ namespace Desalgoritmizacao.UI
 
             Button restartButton = UIFactory.CreateButton(left.transform, theme.restartButtonLabel, theme.systemAccentColor, theme.textPrimaryColor, 18);
             UIFactory.AddLayoutElement(restartButton.gameObject, preferredHeight: 50f);
-            restartButton.onClick.AddListener(ShowMenu);
+            restartButton.onClick.AddListener(() =>
+            {
+                session.ResetFromTheme(theme);
+                ShowMenu();
+            });
 
             Text logTitle = UIFactory.CreateText(right.transform, theme.decisionLogTitle, 22, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIFactory.AddLayoutElement(logTitle.gameObject, preferredHeight: 30f);
@@ -694,11 +795,23 @@ namespace Desalgoritmizacao.UI
             ScrollRect logScroll = UIFactory.CreateScrollView(right.transform, theme.elevatedSurfaceColor, theme.elevatedSurfaceColor, out RectTransform logContent);
             UIFactory.AddLayoutElement(logScroll.gameObject, flexibleHeight: 1f);
             UIFactory.AddVerticalLayout(logContent.gameObject, 10, new RectOffset(12, 12, 12, 12), false);
+            CreateScrollHint(right.transform);
 
             for (int i = 0; i < session.decisionHistory.Count; i++)
             {
                 CreateDecisionRecordCard(logContent.transform, session.decisionHistory[i]);
             }
+        }
+
+        private void CreateScrollHint(Transform parent)
+        {
+            if (theme == null || string.IsNullOrWhiteSpace(theme.scrollIndicatorLabel))
+            {
+                return;
+            }
+
+            Text hint = UIFactory.CreateText(parent, "↓ " + theme.scrollIndicatorLabel, 13, theme.textSecondaryColor, TextAnchor.MiddleRight, FontStyle.Italic);
+            UIFactory.AddLayoutElement(hint.gameObject, preferredHeight: 18f);
         }
 
         private void CreateMetricsStrip(Transform parent)
