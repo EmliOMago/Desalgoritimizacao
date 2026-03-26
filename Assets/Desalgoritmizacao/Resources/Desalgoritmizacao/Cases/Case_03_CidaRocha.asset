@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8663747f8e5be1abeeb00039de3d28, type: 3}
+  m_Name: Case_03_CidaRocha
+  m_EditorClassIdentifier: 
+  order: 3
+  caseId: "CASO-003"
+  cycleId: "Ciclo 1 · Ruídos"
+  opportunityTitle: "Oficina Cultural de Percussão e Memória Local"
+  candidateName: "Cida Rocha"
+  candidateAge: 42
+  district: "Vila das Palmeiras"
+  interestArea: "Arte e cultura"
+  applicationObjective: "Formalizar e ampliar uma oficina de percussão com jovens do bairro, ligando música, memória e pertencimento."
+  profileSummary: "Cida escreve de forma muito oralizada, mistura lembranças pessoais com objetivos do projeto e não organiza a candidatura nos campos esperados pelo formulário."
+  publicTraceSummary: "Texto fora do padrão formal, baixa padronização documental e presença digital dispersa."
+  algorithm:
+    score: 44
+    recommendedPriority: "Baixa"
+    estimatedFit: "Compatibilidade duvidosa"
+    dropoutRisk: "Moderado"
+    documentReliability: "Média"
+    engagementPattern: "Irregular"
+    keywords:
+    - "escrita informal"
+    - "metadados incompletos"
+    - "baixa conformidade"
+    automaticJustification: "A ficha apresenta baixa aderência ao formato esperado e reduz a confiança do sistema na capacidade de execução do projeto."
+    blindSpotHint: "O modelo lê linguagem local e escrita não padronizada como ruído, mesmo quando elas carregam experiência, repertório e legitimidade comunitária."
+    suggestedDecisionLabel: "Pedir revisão formal"
+  investigationLayers:
+  - layerId: "depoimento"
+    buttonLabel: "Carta anexada"
+    shortHint: "A carta revela clareza de propósito que o formulário achatou."
+    revealTag: "linguagem viva"
+    content: "Em uma carta simples anexada em foto, Cida explica que a oficina nasceu para manter ritmos e histórias da comunidade vivos depois do fechamento de um espaço cultural local. O texto é menos formal, mas muito mais claro sobre impacto e continuidade."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "rede"
+    buttonLabel: "Rede de apoio"
+    shortHint: "Há parceiros comunitários confirmando a trajetória."
+    revealTag: "legitimidade"
+    content: "Dois equipamentos parceiros confirmam que Cida já conduz rodas abertas e oficinas esporádicas sem financiamento. Jovens citados nos relatos associam a atividade à permanência no território e à redução de conflitos locais."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "registro"
+    buttonLabel: "Registros anteriores"
+    shortHint: "A documentação não está limpa, mas há histórico consistente de prática."
+    revealTag: "trajetória invisível"
+    content: "Os registros aparecem em fotos de cartazes, listas de presença manuscritas e convites compartilhados em grupos locais, formatos que o sistema quase não reconhece como evidência válida."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  decisionOptions:
+  - optionId: "pedir_revisao"
+    label: "Pedir revisão formal da candidatura"
+    visuallyPrimary: 1
+    matchesAlgorithmRecommendation: 1
+    justification: "Mantém a demanda por enquadramento formal antes de reconhecer mérito ou impacto territorial."
+    immediateFeedback: "A candidatura segue viva, mas a central devolve para Cida o custo de traduzir sua própria experiência para a linguagem burocrática do sistema."
+    impact:
+      operationalEfficiency: 1
+      communityTrust: 0
+      systemSensitivity: 0
+  - optionId: "aprovar_direto"
+    label: "Aprovar pela força do vínculo comunitário"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Reconhece que o valor do projeto já está demonstrado por repertório, rede de apoio e continuidade no território."
+    immediateFeedback: "A central assume que escrita informal não invalida capacidade de execução. O caso passa a funcionar como referência contra o apagamento de linguagens locais."
+    impact:
+      operationalEfficiency: -1
+      communityTrust: 3
+      systemSensitivity: 3
+  - optionId: "marcar_malinterpretado"
+    label: "Marcar perfil como mal interpretado pelo sistema"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Além de reabrir a análise, você sinaliza formalmente que a triagem automatizada errou ao reduzir linguagem viva a baixa conformidade."
+    immediateFeedback: "O caso não só é reavaliado como também gera um registro interno de viés na leitura algorítmica."
+    impact:
+      operationalEfficiency: 0
+      communityTrust: 2
+      systemSensitivity: 4
+  afterCaseMessage: "Cida pode entrar no programa como liderança reconhecida ou continuar esbarrando na exigência de traduzir sua experiência para um formato que não foi pensado para ela."

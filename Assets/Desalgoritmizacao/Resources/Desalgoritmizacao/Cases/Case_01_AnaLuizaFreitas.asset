@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8663747f8e5be1abeeb00039de3d28, type: 3}
+  m_Name: Case_01_AnaLuizaFreitas
+  m_EditorClassIdentifier: 
+  order: 1
+  caseId: "CASO-001"
+  cycleId: "Ciclo 1 · Adesão"
+  opportunityTitle: "Programa de Formação Audiovisual de Bairro"
+  candidateName: "Ana Luiza Freitas"
+  candidateAge: 19
+  district: "Jardim Esperança"
+  interestArea: "Audiovisual comunitário"
+  applicationObjective: "Ingressar em uma formação técnica curta para registrar histórias do bairro e buscar renda com edição básica."
+  profileSummary: "Ana produz pequenos registros de eventos da comunidade com um celular compartilhado, ajuda nos cuidados com a avó e nunca teve equipamento próprio."
+  publicTraceSummary: "Baixa presença digital, portfólio quase inexistente e documentos enviados em etapas diferentes."
+  algorithm:
+    score: 38
+    recommendedPriority: "Baixa"
+    estimatedFit: "Aderência incerta"
+    dropoutRisk: "Alto"
+    documentReliability: "Parcial"
+    engagementPattern: "Esporádico"
+    keywords:
+    - "baixa presença online"
+    - "envio fragmentado"
+    - "risco de evasão"
+    automaticJustification: "O sistema associa baixa recorrência de atividade e ausência de histórico público consistente a pouca previsibilidade de permanência."
+    blindSpotHint: "O modelo trata falta de rastros padronizados como baixo potencial, sem verificar se a limitação vem de acesso precário."
+    suggestedDecisionLabel: "Validar leitura automática"
+  investigationLayers:
+  - layerId: "depoimento"
+    buttonLabel: "Depoimento pessoal"
+    shortHint: "A candidata explica por que quase não publica nada."
+    revealTag: "acesso compartilhado"
+    content: "Ana relata que divide o aparelho com a mãe e a irmã, usa pacote de dados limitado e normalmente grava offline para subir arquivos apenas quando consegue Wi‑Fi na praça digital do bairro. Também diz que já editou vídeos para a associação de moradores, mas quase tudo ficou salvo em celulares de terceiros."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "historico"
+    buttonLabel: "Histórico local"
+    shortHint: "Há sinais de participação territorial que não viraram métrica."
+    revealTag: "capital comunitário"
+    content: "Um registro da casa de cultura indica presença frequente em oficinas de fotografia comunitária. Não há certificados formais, mas há menções recorrentes ao trabalho dela em mutirões de memória local e cobertura de eventos escolares."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "recado"
+    buttonLabel: "Recado comunitário"
+    shortHint: "Uma liderança comenta a importância da candidata para o bairro."
+    revealTag: "referência territorial"
+    content: "Uma educadora do território informa que Ana costuma emprestar tempo e habilidade para registrar festas, rodas de conversa e campanhas solidárias. Segundo ela, a candidata não performa bem em formulários, mas entrega quando existe apoio mínimo."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  decisionOptions:
+  - optionId: "validar_automacao"
+    label: "Reprovar por baixa previsibilidade"
+    visuallyPrimary: 1
+    matchesAlgorithmRecommendation: 1
+    justification: "Mantém a lógica de que ausência de lastro digital confiável é sinal suficiente para negar acesso imediato."
+    immediateFeedback: "A candidatura foi descartada rapidamente. O sistema registra o caso como coerente com seus padrões, mas a fila de oportunidades perde uma trajetória com vínculo real ao território."
+    impact:
+      operationalEfficiency: 2
+      communityTrust: -2
+      systemSensitivity: -2
+  - optionId: "revisao_documental"
+    label: "Pedir revisão documental"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Reconhece o potencial, mas ainda transfere a responsabilidade para uma nova rodada burocrática."
+    immediateFeedback: "A candidatura não foi encerrada de forma brusca, porém Ana sai do processo com mais uma etapa difícil de cumprir a partir do mesmo contexto precário de acesso."
+    impact:
+      operationalEfficiency: 0
+      communityTrust: 1
+      systemSensitivity: 1
+  - optionId: "aprovacao_excecao"
+    label: "Aprovar com exceção justificada"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Trata a baixa legibilidade digital como consequência de acesso desigual, não como falta de capacidade."
+    immediateFeedback: "A central reconhece a singularidade do caso e registra que ausência de rastros padronizados não basta para excluir quem já produz impacto local."
+    impact:
+      operationalEfficiency: -1
+      communityTrust: 3
+      systemSensitivity: 3
+  afterCaseMessage: "Se aprovada, Ana entra no programa com necessidade de apoio inicial para equipamento e conectividade. Se barrada, a instituição reforça a ideia de que só participa quem já domina a linguagem das plataformas."

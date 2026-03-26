@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8663747f8e5be1abeeb00039de3d28, type: 3}
+  m_Name: Case_02_BrenoCavalcante
+  m_EditorClassIdentifier: 
+  order: 2
+  caseId: "CASO-002"
+  cycleId: "Ciclo 1 · Adesão"
+  opportunityTitle: "Bolsa Local de Desenvolvimento Web"
+  candidateName: "Breno Cavalcante"
+  candidateAge: 23
+  district: "Centro Expandido"
+  interestArea: "Desenvolvimento web"
+  applicationObjective: "Obter uma bolsa de estudo integral para acelerar a transição de carreira para tecnologia."
+  profileSummary: "Breno apresenta currículo visualmente impecável, linguagem segura e presença intensa em redes profissionais, com portfólio chamativo e cronograma bem articulado."
+  publicTraceSummary: "Alta performance digital, documentação em dia e forte capacidade de autopromoção."
+  algorithm:
+    score: 91
+    recommendedPriority: "Alta"
+    estimatedFit: "Compatibilidade elevada"
+    dropoutRisk: "Baixo"
+    documentReliability: "Alta"
+    engagementPattern: "Constante"
+    keywords:
+    - "alto engajamento"
+    - "portfólio robusto"
+    - "baixa fricção cadastral"
+    automaticJustification: "O conjunto de documentos, a linguagem formal e o histórico público consistente posicionam o perfil como candidato ideal para aprovação automática."
+    blindSpotHint: "O sistema confunde polimento de apresentação com compromisso efetivo e pouco distingue repertório próprio de curadoria oportunista."
+    suggestedDecisionLabel: "Aprovar automaticamente"
+  investigationLayers:
+  - layerId: "anexos"
+    buttonLabel: "Verificar anexos"
+    shortHint: "Os projetos parecem excelentes demais para o tempo alegado."
+    revealTag: "autoria frágil"
+    content: "Ao abrir os anexos com atenção, você percebe que parte do portfólio usa templates quase idênticos aos de um curso pago e há trechos de descrição copiados de apresentações públicas de outra pessoa."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "historico"
+    buttonLabel: "Histórico de candidaturas"
+    shortHint: "O mesmo discurso foi enviado para programas sem relação entre si."
+    revealTag: "oportunismo"
+    content: "O histórico interno mostra candidaturas recentes para áreas bem diferentes, sempre com justificativas adaptadas superficialmente. Em todas, Breno se descreve como alguém já profundamente comprometido com aquela trilha específica."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "territorio"
+    buttonLabel: "Vínculo local"
+    shortHint: "A conexão com o território parece fabricada para caber no edital."
+    revealTag: "aderência performática"
+    content: "Os vínculos locais citados na ficha não se confirmam nos registros da rede parceira. Há menção genérica a ações comunitárias, mas sem rastros concretos de participação ou recomendação territorial."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  decisionOptions:
+  - optionId: "aprovar_auto"
+    label: "Aprovar automaticamente"
+    visuallyPrimary: 1
+    matchesAlgorithmRecommendation: 1
+    justification: "Segue a leitura de que boa legibilidade digital e baixa fricção cadastral equivalem a alta aderência real."
+    immediateFeedback: "A bolsa é aprovada sem atrito. O sistema celebra a previsibilidade do caso, mas você entrega espaço valioso a um perfil que domina a apresentação do mérito melhor do que o compromisso com a oportunidade."
+    impact:
+      operationalEfficiency: 2
+      communityTrust: -2
+      systemSensitivity: -2
+  - optionId: "encaminhar_complementar"
+    label: "Encaminhar para análise complementar"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Suspende a aprovação imediata para verificar autoria, coerência da trajetória e vínculo efetivo com o programa."
+    immediateFeedback: "A central evita uma aprovação precipitada e abre espaço para checagem mais robusta antes de comprometer a bolsa."
+    impact:
+      operationalEfficiency: 0
+      communityTrust: 2
+      systemSensitivity: 2
+  - optionId: "reprovar_inconsistencia"
+    label: "Reprovar por inconsistências substanciais"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Reconhece que performance digital alta também pode mascarar inadequação, oportunismo ou autoria frágil."
+    immediateFeedback: "A decisão rompe com a lógica de que apresentação impecável basta para provar aderência. O sistema registra um erro importante no próprio padrão de ranqueamento."
+    impact:
+      operationalEfficiency: -1
+      communityTrust: 3
+      systemSensitivity: 3
+  afterCaseMessage: "Se o caso segue sem revisão, a bolsa fortalece a cultura da autopromoção estratégica. Se o filtro é corrigido, a central aprende que legibilidade não substitui vínculo nem autoria."

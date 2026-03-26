@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49d29cb09d075c03a687eabf2e64e77c, type: 3}
+  m_Name: AppThemeConfig
+  m_EditorClassIdentifier: 
+  gameTitle: "Desalgoritmização"
+  presentationLine: "Nem toda trajetória cabe no perfil que o sistema enxerga."
+  menuIntro: "Você opera uma central digital que distribui acesso a oportunidades locais. O sistema foi desenhado para prometer neutralidade, velocidade e escala, mas a cada candidatura fica mais claro que legibilidade digital não é o mesmo que potencial humano. Nesta fundação jogável, a interface já empurra você para a validação rápida da automação, enquanto o contexto humano exige passos extras, leitura atenta e decisões justificadas."
+  dashboardSummary: "A central organiza candidaturas, registra o impacto acumulado das suas escolhas e deixa clara a disputa entre produtividade institucional, confiança comunitária e sensibilidade do sistema."
+  startButtonLabel: "Iniciar operação"
+  queueTitle: "Fila de candidaturas"
+  beginCaseButtonLabel: "Analisar próximo caso"
+  profilePanelTitle: "Ficha visível"
+  algorithmPanelTitle: "Leitura algorítmica"
+  investigationPanelTitle: "Investigação contextual"
+  alternativesPanelTitle: "Saídas possíveis"
+  impactPanelTitle: "Registro de impacto"
+  nextCaseButtonLabel: "Registrar e voltar à central"
+  restartButtonLabel: "Reiniciar ciclo"
+  unlockInvestigationLabel: "Abrir investigação contextual"
+  returnToDashboardLabel: "Voltar à central"
+  sessionSummaryTitle: "Síntese do ciclo"
+  decisionLogTitle: "Histórico de decisões"
+  startingOperationalEfficiency: 58
+  startingCommunityTrust: 52
+  startingSystemSensitivity: 34
+  recommendedAnalysisSeconds: 45.0
+  slowPenaltyIntervalSeconds: 25.0
+  backgroundColor: {r: 0.07, g: 0.08, b: 0.11, a: 1.0}
+  surfaceColor: {r: 0.11, g: 0.13, b: 0.18, a: 1.0}
+  elevatedSurfaceColor: {r: 0.15, g: 0.18, b: 0.24, a: 1.0}
+  systemAccentColor: {r: 0.25, g: 0.67, b: 0.98, a: 1.0}
+  humanAccentColor: {r: 0.95, g: 0.76, b: 0.33, a: 1.0}
+  positiveColor: {r: 0.29, g: 0.78, b: 0.5, a: 1.0}
+  negativeColor: {r: 0.88, g: 0.35, b: 0.35, a: 1.0}
+  warningColor: {r: 0.96, g: 0.53, b: 0.25, a: 1.0}
+  textPrimaryColor: {r: 0.95, g: 0.96, b: 0.98, a: 1.0}
+  textSecondaryColor: {r: 0.72, g: 0.76, b: 0.84, a: 1.0}
+  mutedOverlayColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.18}
+  endings:
+  - endingId: "sensitive_efficiency"
+    title: "Eficiência Sensível"
+    description: "A central continua funcionando com ritmo aceitável, mas já não trata exceções como ruído descartável. O sistema aprende que contexto humano também é dado relevante, a comunidade volta a confiar no processo e a automação deixa de ocupar sozinha o lugar de verdade."
+    tone: "equilíbrio atento"
+  - endingId: "total_automation"
+    title: "Automação Total"
+    description: "A operação atinge ótima velocidade e previsibilidade, porém a fila passa a privilegiar quem já performa bem diante do padrão digital. A central parece eficiente por fora, mas oportunidades se estreitam para trajetórias menos legíveis."
+    tone: "produtividade fria"
+  - endingId: "radical_humanization"
+    title: "Humanização Radical"
+    description: "Suas decisões empurram a instituição para rever o modelo de triagem com profundidade. O processo fica mais lento e mais trabalhoso, mas as camadas humanas deixam de ser periféricas e passam a influenciar o próprio desenho do sistema."
+    tone: "ruptura cuidadosa"
+  - endingId: "operational_collapse"
+    title: "Colapso Operacional"
+    description: "A central perde coerência, acumula atrito e não consegue sustentar o fluxo de trabalho. Mesmo com boa intenção, faltou equilíbrio entre leitura profunda, gestão do volume e sustentação do processo institucional."
+    tone: "sobrecarga"
+  - endingId: "passive_conformity"
+    title: "Conformidade Passiva"
+    description: "A automação guiou quase todas as escolhas sem resistência real. O operador humano existiu apenas para confirmar decisões que já vinham prontas, e a central saiu do ciclo mais rígida do que entrou."
+    tone: "acomodação"

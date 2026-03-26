@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8663747f8e5be1abeeb00039de3d28, type: 3}
+  m_Name: Case_06_NivaldoSantos
+  m_EditorClassIdentifier: 
+  order: 6
+  caseId: "CASO-006"
+  cycleId: "Ciclo 1 · Pressão"
+  opportunityTitle: "Programa Noturno de Inclusão Digital"
+  candidateName: "Nivaldo Santos"
+  candidateAge: 34
+  district: "Parque do Sol"
+  interestArea: "Inclusão digital e trabalho"
+  applicationObjective: "Aprender ferramentas digitais básicas para reorganizar o trabalho informal, acessar serviços e ajudar a filha nas atividades escolares."
+  profileSummary: "Nivaldo tem histórico online quase inexistente, baixa frequência de resposta e dificuldade evidente com formulários longos. A candidatura parece frágil ao primeiro olhar."
+  publicTraceSummary: "Baixa atividade digital, retorno lento e sinais de pouca familiaridade com plataformas."
+  algorithm:
+    score: 31
+    recommendedPriority: "Baixa"
+    estimatedFit: "Compatibilidade reduzida"
+    dropoutRisk: "Alto"
+    documentReliability: "Média"
+    engagementPattern: "Muito baixo"
+    keywords:
+    - "frequência online baixa"
+    - "risco alto"
+    - "baixa legibilidade"
+    automaticJustification: "A baixa interação digital e a resposta tardia sugerem pouca aderência e alta chance de abandono do programa."
+    blindSpotHint: "O programa de inclusão digital pode justamente existir para quem ainda não domina as plataformas; usar esse déficit como filtro principal sabota o próprio objetivo da iniciativa."
+    suggestedDecisionLabel: "Validar leitura automática"
+  investigationLayers:
+  - layerId: "rotina"
+    buttonLabel: "Rotina de trabalho"
+    shortHint: "O ritmo online baixo tem relação direta com o horário de vida do candidato."
+    revealTag: "turno exaustivo"
+    content: "Nivaldo trabalha em jornadas irregulares de carga e descarga, usa o celular mais à noite e quase sempre com bateria baixa. O padrão de resposta lenta decorre muito mais da rotina de trabalho do que de desinteresse."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "familia"
+    buttonLabel: "Contexto familiar"
+    shortHint: "A oportunidade atende a uma demanda intergeracional, não só individual."
+    revealTag: "permanência pelo cuidado"
+    content: "Ele explica que quer aprender o básico para acessar serviços públicos, organizar bicos e acompanhar a filha na escola. A motivação é clara, embora o texto seja curto e pouco elaborado."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "referencia"
+    buttonLabel: "Referência do território"
+    shortHint: "Há confiança local onde o sistema vê ausência."
+    revealTag: "confiança comunitária"
+    content: "Uma agente da rede local informa que Nivaldo compareceu a encontros presenciais sobre acesso digital, mas evita inscrições online por medo de errar. Segundo ela, quando recebe acolhimento direto, ele persiste."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  decisionOptions:
+  - optionId: "reprovar_auto"
+    label: "Reprovar por baixa aderência digital"
+    visuallyPrimary: 1
+    matchesAlgorithmRecommendation: 1
+    justification: "Aceita a contradição de excluir justamente quem demonstra menos familiaridade com o meio que o programa deveria democratizar."
+    immediateFeedback: "A triagem fecha o caso rápido, mas reforça um desenho em que a porta de entrada para inclusão digital exige já estar incluído."
+    impact:
+      operationalEfficiency: 2
+      communityTrust: -3
+      systemSensitivity: -2
+  - optionId: "encaminhar_apoio"
+    label: "Encaminhar com acolhimento inicial"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Reconhece que a baixa legibilidade faz parte do problema que o próprio programa pretende enfrentar."
+    immediateFeedback: "A central registra que inclusão digital não pode ser triada apenas por comportamento digital prévio. O caso entra com necessidade de apoio inicial explícito."
+    impact:
+      operationalEfficiency: 0
+      communityTrust: 3
+      systemSensitivity: 3
+  - optionId: "pedir_revisao_docs"
+    label: "Pedir revisão documental antes da entrada"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "É uma saída intermediária que evita o descarte, mas ainda impõe mais uma barreira a quem já enfrenta dificuldade de navegar o processo."
+    immediateFeedback: "A decisão reduz o dano do filtro automático, porém mantém parte do peso burocrático nas costas do candidato."
+    impact:
+      operationalEfficiency: 1
+      communityTrust: 1
+      systemSensitivity: 1
+  afterCaseMessage: "O caso de Nivaldo evidencia um paradoxo central do projeto: programas de acesso podem se tornar mecanismos de exclusão quando confundem déficit de acesso com falta de mérito."

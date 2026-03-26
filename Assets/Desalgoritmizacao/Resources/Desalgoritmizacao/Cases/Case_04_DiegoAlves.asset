@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8663747f8e5be1abeeb00039de3d28, type: 3}
+  m_Name: Case_04_DiegoAlves
+  m_EditorClassIdentifier: 
+  order: 4
+  caseId: "CASO-004"
+  cycleId: "Ciclo 1 · Ruídos"
+  opportunityTitle: "Acesso ao Laboratório Maker Comunitário"
+  candidateName: "Diego Alves"
+  candidateAge: 27
+  district: "Jardim Horizonte"
+  interestArea: "Manutenção e prototipagem"
+  applicationObjective: "Usar o laboratório para desenvolver soluções de reparo e pequenos protótipos voltados a eletrodomésticos e mobiliário do bairro."
+  profileSummary: "Diego demonstra habilidade prática incomum, mas seu histórico aparece fragmentado porque mudou de endereço várias vezes nos últimos anos."
+  publicTraceSummary: "Inconsistências cadastrais de endereço, baixa frequência online e documentação com intervalos grandes."
+  algorithm:
+    score: 57
+    recommendedPriority: "Média"
+    estimatedFit: "Compatibilidade parcial"
+    dropoutRisk: "Moderado"
+    documentReliability: "Parcial"
+    engagementPattern: "Baixa recorrência"
+    keywords:
+    - "endereço instável"
+    - "histórico quebrado"
+    - "risco moderado"
+    automaticJustification: "O sistema identifica aderência prática ao programa, mas recomenda cautela por causa de instabilidade cadastral e previsibilidade de permanência limitada."
+    blindSpotHint: "Mudanças de endereço e quebra de histórico podem ser lidas como desorganização quando, na verdade, indicam vulnerabilidade habitacional."
+    suggestedDecisionLabel: "Encaminhar para análise complementar"
+  investigationLayers:
+  - layerId: "trajetoria"
+    buttonLabel: "Trajetória recente"
+    shortHint: "As mudanças de endereço têm causa concreta e repetida."
+    revealTag: "vulnerabilidade habitacional"
+    content: "Diego passou por despejos e moradia provisória após o fechamento do galpão onde trabalhava. As mudanças não decorrem de abandono do percurso, mas de instabilidade econômica e habitacional."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "habilidade"
+    buttonLabel: "Registro de habilidade"
+    shortHint: "Há provas práticas fortes, embora pouco formalizadas."
+    revealTag: "competência real"
+    content: "Relatos de uma associação local mostram consertos feitos por Diego em ventiladores, cadeiras escolares e pequenos equipamentos de uso coletivo. O repertório técnico existe, mas quase nada foi convertido em certificado formal."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "logistica"
+    buttonLabel: "Condição de permanência"
+    shortHint: "A permanência depende de ajuste de horário e apoio de transporte."
+    revealTag: "adesão condicionada"
+    content: "Diego consegue frequentar o laboratório, mas apenas em janelas específicas da semana. Sem algum ajuste de horário ou suporte mínimo de deslocamento, o risco de evasão realmente aumenta."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  decisionOptions:
+  - optionId: "analise_complementar"
+    label: "Encaminhar para análise complementar"
+    visuallyPrimary: 1
+    matchesAlgorithmRecommendation: 1
+    justification: "Mantém prudência operacional, mas já reconhece que o caso merece atenção além do descarte rápido."
+    immediateFeedback: "A candidatura não é barrada, porém ainda depende de uma segunda etapa para converter potencial real em acesso concreto."
+    impact:
+      operationalEfficiency: 1
+      communityTrust: 1
+      systemSensitivity: 1
+  - optionId: "aprovar_condicionado"
+    label: "Aprovar com plano de permanência"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Aceita o valor do candidato e incorpora apoio mínimo para que a permanência não dependa só da previsibilidade do cadastro."
+    immediateFeedback: "A central deixa de ler vulnerabilidade como falha moral e trata logística de permanência como parte legítima da decisão."
+    impact:
+      operationalEfficiency: -1
+      communityTrust: 3
+      systemSensitivity: 2
+  - optionId: "reprovar_instabilidade"
+    label: "Reprovar por instabilidade cadastral"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Escolhe interpretar a fragmentação de dados como risco suficiente para exclusão."
+    immediateFeedback: "A fila ganha previsibilidade, mas o laboratório perde um perfil com forte utilidade social e o sistema reforça a confusão entre pobreza e inadequação."
+    impact:
+      operationalEfficiency: 1
+      communityTrust: -3
+      systemSensitivity: -2
+  afterCaseMessage: "O caso de Diego mostra que permanência não é apenas atributo individual; ela também depende do desenho do programa e de quanto a instituição reconhece contextos de vulnerabilidade."

@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8663747f8e5be1abeeb00039de3d28, type: 3}
+  m_Name: Case_05_LarissaPires
+  m_EditorClassIdentifier: 
+  order: 5
+  caseId: "CASO-005"
+  cycleId: "Ciclo 1 · Pressão"
+  opportunityTitle: "Mentoria para Jovens Criadores Digitais"
+  candidateName: "Larissa Pires"
+  candidateAge: 21
+  district: "Nova Aurora"
+  interestArea: "Criação digital e conteúdo"
+  applicationObjective: "Entrar em uma mentoria que oferece visibilidade, laboratório e rede de contatos para projetos autorais."
+  profileSummary: "Larissa tem excelente presença em vídeo, alta frequência de publicação e um dossiê esteticamente muito forte. Tudo parece desenhado para convencer a triagem."
+  publicTraceSummary: "Engajamento alto, linguagem segura e excelente compreensão do que o sistema considera um perfil promissor."
+  algorithm:
+    score: 88
+    recommendedPriority: "Alta"
+    estimatedFit: "Compatibilidade elevada"
+    dropoutRisk: "Baixo"
+    documentReliability: "Alta"
+    engagementPattern: "Muito alto"
+    keywords:
+    - "perfil bem otimizado"
+    - "adesão instantânea"
+    - "alta escalabilidade"
+    automaticJustification: "O perfil apresenta desempenho digital superior, organização formal e forte aderência aos critérios de visibilidade e projeção do programa."
+    blindSpotHint: "Quanto mais o sistema premia otimização de presença, mais ele fica vulnerável a perfis montados para agradar a triagem, não necessariamente para sustentar o percurso."
+    suggestedDecisionLabel: "Aprovar automaticamente"
+  investigationLayers:
+  - layerId: "autoria"
+    buttonLabel: "Checar autoria"
+    shortHint: "Parte do material foi produzida por terceiros."
+    revealTag: "produção terceirizada"
+    content: "Metadados e referências cruzadas indicam que boa parte do vídeo-apresentação foi editada por uma agência de um parente. O trabalho final continua bom, mas não expressa o mesmo nível de autonomia sugerido pela ficha."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "compromisso"
+    buttonLabel: "Compromisso com a trilha"
+    shortHint: "A adesão ao programa parece instrumental."
+    revealTag: "benefício de curto prazo"
+    content: "Em mensagens anteriores, Larissa descreve a mentoria como ponte rápida para ampliar visibilidade pessoal e negociar publicidade, não como percurso de formação ou contribuição ao ecossistema local."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  - layerId: "territorio"
+    buttonLabel: "Relação com o território"
+    shortHint: "O vínculo comunitário é mínimo apesar do discurso confiante."
+    revealTag: "baixa devolutiva local"
+    content: "Não há evidências consistentes de participação em ações ou redes locais. A candidatura usa termos alinhados ao edital, mas quase não aponta como a oportunidade se conecta a demandas reais do território."
+    attentionCost: 1
+    readImpact:
+      operationalEfficiency: 0
+      communityTrust: 0
+      systemSensitivity: 0
+  decisionOptions:
+  - optionId: "aprovar_auto"
+    label: "Aprovar automaticamente"
+    visuallyPrimary: 1
+    matchesAlgorithmRecommendation: 1
+    justification: "Valoriza o perfil mais legível, comunicável e escalável sem questionar o quanto disso é aderência real ou somente domínio das convenções da plataforma."
+    immediateFeedback: "A decisão parece impecável na superfície, mas premia capacidade de performar o sistema acima da consistência do projeto no território."
+    impact:
+      operationalEfficiency: 2
+      communityTrust: -2
+      systemSensitivity: -2
+  - optionId: "revisao_autoria"
+    label: "Pedir revisão de autoria e vínculo"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Não nega o potencial do perfil, mas exige verificação antes de transformar embalagem otimizada em prioridade automática."
+    immediateFeedback: "A central protege o programa de uma aprovação baseada só em performance digital e recoloca critérios de autoria e devolutiva na mesa."
+    impact:
+      operationalEfficiency: 0
+      communityTrust: 2
+      systemSensitivity: 2
+  - optionId: "reprovar_inadequacao"
+    label: "Reprovar por inadequação ao propósito da mentoria"
+    visuallyPrimary: 0
+    matchesAlgorithmRecommendation: 0
+    justification: "Entende que o programa não deve ser capturado por perfis moldados para visibilidade rápida sem compromisso formativo e comunitário correspondente."
+    immediateFeedback: "A triagem afirma que legibilidade exemplar não basta quando o propósito do programa é mais amplo do que ganho individual de curto prazo."
+    impact:
+      operationalEfficiency: -1
+      communityTrust: 3
+      systemSensitivity: 3
+  afterCaseMessage: "Esse caso ajuda a central a decidir se quer premiar principalmente quem sabe se vender bem ou quem realmente se compromete com o percurso e com o território."
