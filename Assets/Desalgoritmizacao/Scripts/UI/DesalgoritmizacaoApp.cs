@@ -360,7 +360,7 @@ namespace Desalgoritmizacao.UI
 
         private void ResolveSceneAnchor()
         {
-            sceneRig = Object.FindFirstObjectByType<DesalgoritmizacaoSceneRig>();
+            sceneRig = UnityEngine.Object.FindFirstObjectByType<DesalgoritmizacaoSceneRig>();
             if (sceneRig != null)
             {
                 sceneRig.EnsureRuntimeObjects();
@@ -369,7 +369,7 @@ namespace Desalgoritmizacao.UI
                 return;
             }
 
-            screenAnchor = Object.FindFirstObjectByType<DesalgoritmizacaoScreenAnchor>();
+            screenAnchor = UnityEngine.Object.FindFirstObjectByType<DesalgoritmizacaoScreenAnchor>();
             if (screenAnchor != null)
             {
                 uiCamera = screenAnchor.ResolveCamera();
@@ -379,7 +379,7 @@ namespace Desalgoritmizacao.UI
             uiCamera = Camera.main;
             if (uiCamera == null)
             {
-                uiCamera = Object.FindFirstObjectByType<Camera>();
+                uiCamera = UnityEngine.Object.FindFirstObjectByType<Camera>();
             }
         }
 
@@ -540,7 +540,6 @@ namespace Desalgoritmizacao.UI
             UIFactory.Stretch(inputText.rectTransform);
 
             inputField.targetGraphic = rootImage;
-            inputField.textViewport = textAreaRect;
             inputField.textComponent = inputText;
             inputField.placeholder = placeholder;
             inputField.lineType = InputField.LineType.SingleLine;
