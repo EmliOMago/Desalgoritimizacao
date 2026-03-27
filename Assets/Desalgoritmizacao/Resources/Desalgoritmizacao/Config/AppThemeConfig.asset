@@ -36,6 +36,15 @@ MonoBehaviour:
   startingSystemSensitivity: 34
   recommendedAnalysisSeconds: 45.0
   slowPenaltyIntervalSeconds: 25.0
+  casesPerCycle: 20
+  generatedCasePoolSize: 120
+  rankingMaxEntries: 12
+  shuffleSeed: 41031
+  defaultOperatorName: Operador
+  victoryRuleLabel: "Vitória: os três indicadores precisam chegar a 100."
+  defeatRuleLabel: "Derrota: qualquer indicador chegando a 0 encerra o ciclo."
+  rankingTitle: "Registro de ciclos"
+  rankingSubtitle: "Confiança comunitária define a ordem do painel."
   smallTextScale: 1.0
   bodyTextScale: 1.0
   headingTextScale: 1.0
@@ -70,6 +79,14 @@ MonoBehaviour:
     title: "Colapso Operacional"
     description: "A central perde coerência, acumula atrito e não consegue sustentar o fluxo de trabalho. Mesmo com boa intenção, faltou equilíbrio entre leitura profunda, gestão do volume e sustentação do processo institucional."
     tone: "sobrecarga"
+  - endingId: "collective_victory"
+    title: "Convergência Comunitária"
+    description: "A central alcança o raro ponto em que eficiência operacional, confiança comunitária e sensibilidade do sistema chegam ao máximo ao mesmo tempo. O processo deixa de tratar contexto humano como exceção e passa a operar com legitimidade, precisão e responsabilidade coletiva."
+    tone: "vitória estrutural"
+  - endingId: "indicator_collapse"
+    title: "Queda de Indicador"
+    description: "Um dos pilares do ciclo chegou a zero antes que a central pudesse se reequilibrar. O encerramento revela que o sistema não suporta qualquer desenho de decisão: quando um indicador entra em colapso, a operação inteira perde sustentação."
+    tone: "derrota imediata"
   - endingId: "passive_conformity"
     title: "Conformidade Passiva"
     description: "A automação guiou quase todas as escolhas sem resistência real. O operador humano existiu apenas para confirmar decisões que já vinham prontas, e a central saiu do ciclo mais rígida do que entrou."

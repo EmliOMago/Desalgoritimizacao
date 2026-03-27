@@ -14,6 +14,14 @@ namespace Desalgoritmizacao.Runtime
         public bool matchedAlgorithm;
     }
 
+    public enum CycleOutcome
+    {
+        Ongoing,
+        Victory,
+        Defeat,
+        Exhausted
+    }
+
     public struct FinalEvaluation
     {
         public string endingId;
@@ -22,6 +30,8 @@ namespace Desalgoritmizacao.Runtime
         public int sensitivity;
         public float agreementRatio;
         public int totalLayersRead;
+        public CycleOutcome outcome;
+        public string outcomeLabel;
     }
 
     public static class DesalgoritmizacaoEvaluationEngine
@@ -114,8 +124,26 @@ namespace Desalgoritmizacao.Runtime
                 trust = state.metrics.communityTrust,
                 sensitivity = state.metrics.systemSensitivity,
                 agreementRatio = state.AlgorithmAgreementRatio,
-                totalLayersRead = state.totalLayersRead
+                totalLayersRead = state.totalLayersRead,
+                outcome = CycleOutcome.Exhausted,
+                outcomeLabel = "Ciclo concluído"
             };
+
+            if (IsVictoryState(state))
+            {
+                evaluation.endingId = "collective_victory";
+                evaluation.outcome = CycleOutcome.Victory;
+                evaluation.outcomeLabel = "Vitória";
+                return evaluation;
+            }
+
+            if (IsDefeatState(state))
+            {
+                evaluation.endingId = "indicator_collapse";
+                evaluation.outcome = CycleOutcome.Defeat;
+                evaluation.outcomeLabel = "Derrota";
+                return evaluation;
+            }
 
             if (evaluation.operational <= 28)
             {
@@ -143,6 +171,22 @@ namespace Desalgoritmizacao.Runtime
 
             evaluation.endingId = "sensitive_efficiency";
             return evaluation;
+        }
+
+        public static bool IsVictoryState(DesalgoritmizacaoSessionState state)
+        {
+            return state != null &&
+                   state.metrics.operationalEfficiency >= 100 &&
+                   state.metrics.communityTrust >= 100 &&
+                   state.metrics.systemSensitivity >= 100;
+        }
+
+        public static bool IsDefeatState(DesalgoritmizacaoSessionState state)
+        {
+            return state != null &&
+                   (state.metrics.operationalEfficiency <= 0 ||
+                    state.metrics.communityTrust <= 0 ||
+                    state.metrics.systemSensitivity <= 0);
         }
     }
 }

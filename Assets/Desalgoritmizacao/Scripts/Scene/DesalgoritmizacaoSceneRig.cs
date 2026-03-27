@@ -12,11 +12,13 @@ namespace Desalgoritmizacao.Scene
         [SerializeField] private Transform canvasHost;
         [SerializeField] private Transform menuAnchor;
         [SerializeField] private Transform gameplayAnchor;
+        [SerializeField] private Transform rankingAnchor;
         [SerializeField] private Camera targetCamera;
         [SerializeField] private Vector2 canvasSize = new Vector2(1600f, 900f);
         [SerializeField] private float canvasScale = 0.0012f;
         [SerializeField] private Vector3 menuCanvasLocalPosition = new Vector3(0f, 0f, -0.002f);
         [SerializeField] private Vector3 gameplayCanvasLocalPosition = new Vector3(0f, 0f, -0.004f);
+        [SerializeField] private Vector3 rankingCanvasLocalPosition = new Vector3(0.42f, 0f, -0.004f);
 
         [Header("Temporary Camera Look")]
         [SerializeField] private Transform cameraPivot;
@@ -31,6 +33,7 @@ namespace Desalgoritmizacao.Scene
 
         public Transform MenuAnchor => menuAnchor;
         public Transform GameplayAnchor => gameplayAnchor;
+        public Transform RankingAnchor => rankingAnchor;
         public Vector2 CanvasSize => canvasSize;
 
         public void EnsureRuntimeObjects()
@@ -48,6 +51,16 @@ namespace Desalgoritmizacao.Scene
             if (gameplayAnchor == null)
             {
                 gameplayAnchor = EnsureChild("GameplayAnchor");
+            }
+
+            if (rankingAnchor == null)
+            {
+                rankingAnchor = EnsureChild("RankingAnchor");
+            }
+
+            if (rankingCanvasLocalPosition == Vector3.zero)
+            {
+                rankingCanvasLocalPosition = new Vector3(0.42f, 0f, -0.004f);
             }
 
             if (targetCamera == null)
@@ -85,7 +98,7 @@ namespace Desalgoritmizacao.Scene
             Canvas canvas = existing != null ? existing.GetComponent<Canvas>() : null;
             if (canvas == null)
             {
-                GameObject prefab = Resources.Load<GameObject>(resourcePath);
+                GameObject prefab = string.IsNullOrEmpty(resourcePath) ? null : Resources.Load<GameObject>(resourcePath);
                 GameObject instance;
                 if (prefab != null)
                 {
@@ -140,6 +153,10 @@ namespace Desalgoritmizacao.Scene
                 else if (anchor == gameplayAnchor)
                 {
                     rect.localPosition = gameplayCanvasLocalPosition;
+                }
+                else if (anchor == rankingAnchor)
+                {
+                    rect.localPosition = rankingCanvasLocalPosition;
                 }
             }
 

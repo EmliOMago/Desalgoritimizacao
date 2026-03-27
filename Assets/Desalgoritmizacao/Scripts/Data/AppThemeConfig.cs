@@ -38,6 +38,17 @@ namespace Desalgoritmizacao.Data
         [Min(5f)] public float recommendedAnalysisSeconds = 45f;
         [Min(5f)] public float slowPenaltyIntervalSeconds = 25f;
 
+        [Header("Cycle Rules")]
+        [Min(6)] public int casesPerCycle = 20;
+        [Min(40)] public int generatedCasePoolSize = 120;
+        [Min(1)] public int rankingMaxEntries = 12;
+        [Min(1)] public int shuffleSeed = 41031;
+        public string defaultOperatorName = "Operador";
+        [TextArea(1, 3)] public string victoryRuleLabel = "Vitória: os três indicadores precisam chegar a 100.";
+        [TextArea(1, 3)] public string defeatRuleLabel = "Derrota: qualquer indicador chegando a 0 encerra o ciclo.";
+        public string rankingTitle = "Registro de ciclos";
+        public string rankingSubtitle = "Confiança comunitária define a ordem do painel.";
+
         [Header("Typography")]
         [Min(0.6f)] public float smallTextScale = 1.0f;
         [Min(0.6f)] public float bodyTextScale = 1.0f;

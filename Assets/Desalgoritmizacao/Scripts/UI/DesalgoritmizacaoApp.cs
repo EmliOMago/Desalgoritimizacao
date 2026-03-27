@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Desalgoritmizacao.Data;
 using Desalgoritmizacao.Runtime;
@@ -31,18 +32,24 @@ namespace Desalgoritmizacao.UI
 
         private Canvas mainCanvas;
         private Canvas initialMenuCanvas;
+        private Canvas rankingCanvas;
         private RectTransform headerRoot;
         private RectTransform contentRoot;
         private RectTransform initialMenuRoot;
+        private RectTransform rankingRoot;
         private DesalgoritmizacaoScreenAnchor screenAnchor;
         private DesalgoritmizacaoSceneRig sceneRig;
         private Camera uiCamera;
         private Text headerTitleText;
         private Text headerSubtitleText;
         private Text analysisTimerText;
+        private Button headerExitButton;
         private Transform currentScreenRoot;
+        private InputField operatorNameInput;
 
         private AppThemeConfig theme;
+        private readonly List<CandidateCaseDefinition> caseTemplates = new List<CandidateCaseDefinition>();
+        private readonly List<CandidateCaseDefinition> masterCasePool = new List<CandidateCaseDefinition>();
         private readonly List<CandidateCaseDefinition> cases = new List<CandidateCaseDefinition>();
         private readonly DesalgoritmizacaoSessionState session = new DesalgoritmizacaoSessionState();
 
@@ -56,13 +63,19 @@ namespace Desalgoritmizacao.UI
         private bool investigationUnlocked;
         private bool[] openedLayers = new bool[0];
         private int selectedLayerIndex = -1;
+        private string currentOperatorName = "Operador";
+        private int currentCycleNumber;
+        private bool cycleRecordSaved;
 
         private void Awake()
         {
             ResolveSceneAnchor();
             LoadData();
+            currentOperatorName = DesalgoritmizacaoPersistentProgress.LoadOperatorName(theme != null ? theme.defaultOperatorName : "Operador");
             session.ResetFromTheme(theme);
             BuildInitialMenuCanvas();
+            BuildRankingCanvas();
+            RefreshRankingCanvas();
             ShowMenu();
         }
 
@@ -80,7 +93,10 @@ namespace Desalgoritmizacao.UI
         private void LoadData()
         {
             theme = Resources.Load<AppThemeConfig>("Desalgoritmizacao/Config/AppThemeConfig");
+            caseTemplates.Clear();
             cases.Clear();
+            masterCasePool.Clear();
+
             CandidateCaseDefinition[] loadedCases = Resources.LoadAll<CandidateCaseDefinition>("Desalgoritmizacao/Cases");
             if (loadedCases != null)
             {
@@ -88,12 +104,12 @@ namespace Desalgoritmizacao.UI
                 {
                     if (loadedCases[i] != null)
                     {
-                        cases.Add(loadedCases[i]);
+                        caseTemplates.Add(loadedCases[i]);
                     }
                 }
             }
 
-            cases.Sort((a, b) => a.order.CompareTo(b.order));
+            caseTemplates.Sort((a, b) => a.order.CompareTo(b.order));
 
             if (theme == null)
             {
@@ -102,6 +118,9 @@ namespace Desalgoritmizacao.UI
                 theme.presentationLine = "Nem toda trajetória cabe no perfil que o sistema enxerga.";
                 theme.menuIntro = "Tema temporário carregado em memória.";
                 theme.dashboardSummary = "A central organiza casos, decisões e impacto acumulado.";
+                theme.defaultOperatorName = "Operador";
+                theme.victoryRuleLabel = "Vitória: os três indicadores precisam chegar a 100.";
+                theme.defeatRuleLabel = "Derrota: qualquer indicador chegando a 0 encerra o ciclo.";
             }
 
             UIFactory.Fonts = new UIFactory.FontSettings
@@ -114,7 +133,7 @@ namespace Desalgoritmizacao.UI
                 scrollbarWidth = theme.scrollbarWidth
             };
 
-            if (cases.Count == 0)
+            if (caseTemplates.Count == 0)
             {
                 CandidateCaseDefinition fallback = ScriptableObject.CreateInstance<CandidateCaseDefinition>();
                 fallback.order = 1;
@@ -138,8 +157,89 @@ namespace Desalgoritmizacao.UI
                     immediateFeedback = "Sem os dados reais, a central manteve a decisão padrão.",
                     impact = new ImpactDelta { operationalEfficiency = 1, communityTrust = -1, systemSensitivity = -1 }
                 });
-                cases.Add(fallback);
+                caseTemplates.Add(fallback);
             }
+
+            masterCasePool.AddRange(DesalgoritmizacaoCaseDeckBuilder.BuildExpandedPool(caseTemplates, Mathf.Max(theme.generatedCasePoolSize, theme.casesPerCycle * 6), theme.shuffleSeed));
+        }
+
+
+        private void PrepareNewCycle()
+        {
+            session.ResetFromTheme(theme);
+            cases.Clear();
+            activeCase = null;
+            resolvedCase = null;
+            cycleRecordSaved = false;
+            investigationUnlocked = false;
+            openedLayers = Array.Empty<bool>();
+            selectedLayerIndex = -1;
+
+            DeckReservationData reservation = DesalgoritmizacaoPersistentProgress.ReserveCycleDeck(masterCasePool.Count, theme != null ? theme.casesPerCycle : 20, theme != null ? theme.shuffleSeed : 41031);
+            currentCycleNumber = reservation != null ? reservation.cycleNumber : 0;
+            if (reservation == null || reservation.indices == null || reservation.indices.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < reservation.indices.Count; i++)
+            {
+                int poolIndex = reservation.indices[i];
+                if (poolIndex < 0 || poolIndex >= masterCasePool.Count)
+                {
+                    continue;
+                }
+
+                CandidateCaseDefinition runtimeCase = Instantiate(masterCasePool[poolIndex]);
+                runtimeCase.order = i + 1;
+                runtimeCase.caseId = "CASO-" + (i + 1).ToString("00");
+                runtimeCase.cycleId = "Rodada " + currentCycleNumber + " · Lote " + (i + 1).ToString("00");
+                cases.Add(runtimeCase);
+            }
+        }
+
+        private bool HasTerminalOutcome()
+        {
+            return DesalgoritmizacaoEvaluationEngine.IsVictoryState(session) || DesalgoritmizacaoEvaluationEngine.IsDefeatState(session);
+        }
+
+        private void ReturnToInitialMenu()
+        {
+            session.ResetFromTheme(theme);
+            activeCase = null;
+            resolvedCase = null;
+            currentCycleNumber = 0;
+            analysisTimerText = null;
+            if (mainCanvas != null)
+            {
+                mainCanvas.enabled = false;
+            }
+            ShowMenu();
+        }
+
+        private void EnsureCycleSavedToRanking()
+        {
+            if (cycleRecordSaved)
+            {
+                return;
+            }
+
+            EndingDefinition ending = FindEnding(finalEvaluation.endingId);
+            RankingEntryData entry = new RankingEntryData
+            {
+                cycleNumber = currentCycleNumber,
+                playerName = string.IsNullOrWhiteSpace(currentOperatorName) ? (theme != null ? theme.defaultOperatorName : "Operador") : currentOperatorName,
+                summary = (finalEvaluation.outcome == CycleOutcome.Victory ? "Vitória" : finalEvaluation.outcome == CycleOutcome.Defeat ? "Derrota" : "Ciclo encerrado") + " · " + (ending != null ? ending.title : finalEvaluation.endingId),
+                endingId = finalEvaluation.endingId,
+                operational = session.metrics.operationalEfficiency,
+                communityTrust = session.metrics.communityTrust,
+                systemSensitivity = session.metrics.systemSensitivity,
+                recordedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+            };
+
+            DesalgoritmizacaoPersistentProgress.SaveRankingEntry(entry, theme != null ? theme.rankingMaxEntries : 12);
+            cycleRecordSaved = true;
+            RefreshRankingCanvas();
         }
 
         private void EnsureGameplayShell()
@@ -354,21 +454,46 @@ namespace Desalgoritmizacao.UI
             GameObject root = UIFactory.CreateUIObject("InitialMenuRoot", canvasGo.transform);
             initialMenuRoot = root.GetComponent<RectTransform>();
             UIFactory.SetAnchors(initialMenuRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-
-            Image rootImage = root.AddComponent<Image>();
-            rootImage.color = new Color(0f, 0f, 0f, 0f);
+            root.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
 
             GameObject body = UIFactory.CreateUIObject("Body", initialMenuRoot);
             RectTransform bodyRect = body.GetComponent<RectTransform>();
             UIFactory.SetAnchors(bodyRect, new Vector2(0.12f, 0.08f), new Vector2(0.88f, 0.92f), Vector2.zero, Vector2.zero);
-            UIFactory.AddVerticalLayout(body, 20, new RectOffset(24, 24, 24, 24), false);
+            UIFactory.AddVerticalLayout(body, 16, new RectOffset(24, 24, 24, 24), false);
+
+            GameObject titlePanel = UIFactory.CreateUIObject("TitlePanel", body.transform);
+            UIFactory.AddVerticalLayout(titlePanel, 6, new RectOffset(0, 0, 0, 0), false);
+            UIFactory.AddLayoutElement(titlePanel, preferredHeight: 90f, minHeight: 90f);
+            Text titleText = UIFactory.CreateText(titlePanel.transform, theme != null ? theme.gameTitle : "Desalgoritmizacao", 34, theme != null ? theme.textPrimaryColor : Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UIFactory.AddLayoutElement(titleText.gameObject, preferredHeight: 42f);
+            Text subtitleText = UIFactory.CreateText(titlePanel.transform, theme != null ? theme.presentationLine : string.Empty, 16, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleCenter);
+            UIFactory.AddLayoutElement(subtitleText.gameObject, preferredHeight: 34f);
 
             GameObject imageGo = UIFactory.CreateUIObject("MenuImage", body.transform);
             Image menuImage = imageGo.AddComponent<Image>();
             menuImage.color = screenAnchor != null ? screenAnchor.initialMenuTint : Color.white;
             menuImage.sprite = ResolveInitialMenuSprite();
             menuImage.preserveAspect = true;
-            UIFactory.AddLayoutElement(imageGo, preferredHeight: 540f, minHeight: 260f, flexibleHeight: 1f);
+            UIFactory.AddLayoutElement(imageGo, preferredHeight: 430f, minHeight: 220f, flexibleHeight: 1f);
+
+            Image operatorPanel = UIFactory.CreatePanel(body.transform, theme != null ? theme.surfaceColor : new Color(0.11f, 0.13f, 0.18f, 1f), "OperatorPanel");
+            UIFactory.AddVerticalLayout(operatorPanel.gameObject, 8, new RectOffset(16, 16, 12, 12), false);
+            UIFactory.AddLayoutElement(operatorPanel.gameObject, preferredHeight: 92f, minHeight: 92f);
+            Text operatorLabel = UIFactory.CreateText(operatorPanel.transform, "Operador identificado", 15, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIFactory.AddLayoutElement(operatorLabel.gameObject, preferredHeight: 18f);
+            operatorNameInput = CreateInputField(operatorPanel.transform, currentOperatorName, theme != null ? theme.textPrimaryColor : Color.white, theme != null ? theme.backgroundColor : Color.black, theme != null ? theme.elevatedSurfaceColor : Color.gray);
+            operatorNameInput.onEndEdit.AddListener(OnOperatorNameEdited);
+            UIFactory.AddLayoutElement(operatorNameInput.gameObject, preferredHeight: 34f, minHeight: 34f);
+            Text operatorHint = UIFactory.CreateText(operatorPanel.transform, "O nome será usado no painel de registros de ciclos.", 13, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Italic);
+            UIFactory.AddLayoutElement(operatorHint.gameObject, preferredHeight: 16f);
+
+            Image rulesPanel = UIFactory.CreatePanel(body.transform, theme != null ? theme.elevatedSurfaceColor : new Color(0.15f, 0.18f, 0.24f, 1f), "RulesPanel");
+            UIFactory.AddVerticalLayout(rulesPanel.gameObject, 4, new RectOffset(16, 16, 10, 10), false);
+            UIFactory.AddLayoutElement(rulesPanel.gameObject, preferredHeight: 70f, minHeight: 70f);
+            Text rulesTitle = UIFactory.CreateText(rulesPanel.transform, "Regras do ciclo", 15, theme != null ? theme.humanAccentColor : Color.yellow, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIFactory.AddLayoutElement(rulesTitle.gameObject, preferredHeight: 18f);
+            Text rulesBody = UIFactory.CreateText(rulesPanel.transform, (theme != null ? theme.victoryRuleLabel : "Vitória: os três indicadores precisam chegar a 100.") + "\n" + (theme != null ? theme.defeatRuleLabel : "Derrota: qualquer indicador chegando a 0 encerra o ciclo."), 13, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.UpperLeft);
+            UIFactory.AddLayoutElement(rulesBody.gameObject, preferredHeight: 34f);
 
             GameObject buttonsRow = UIFactory.CreateUIObject("ButtonsRow", body.transform);
             UIFactory.AddHorizontalLayout(buttonsRow, 20, new RectOffset(0, 0, 0, 0), true);
@@ -378,7 +503,8 @@ namespace Desalgoritmizacao.UI
             UIFactory.AddLayoutElement(startButton.gameObject, preferredHeight: 78f, preferredWidth: 340f);
             startButton.onClick.AddListener(() =>
             {
-                session.ResetFromTheme(theme);
+                CommitOperatorNameFromInput();
+                PrepareNewCycle();
                 if (initialMenuCanvas != null)
                 {
                     initialMenuCanvas.enabled = false;
@@ -392,6 +518,158 @@ namespace Desalgoritmizacao.UI
             quitButton.onClick.AddListener(QuitGame);
 
             initialMenuCanvas.enabled = true;
+        }
+
+        private InputField CreateInputField(Transform parent, string initialValue, Color textColor, Color backgroundColor, Color frameColor)
+        {
+            GameObject root = UIFactory.CreateUIObject("InputField", parent);
+            Image rootImage = root.AddComponent<Image>();
+            rootImage.color = frameColor;
+            InputField inputField = root.AddComponent<InputField>();
+
+            GameObject textArea = UIFactory.CreateUIObject("TextArea", root.transform);
+            RectTransform textAreaRect = textArea.GetComponent<RectTransform>();
+            UIFactory.Stretch(textAreaRect);
+            textAreaRect.offsetMin = new Vector2(10f, 6f);
+            textAreaRect.offsetMax = new Vector2(-10f, -6f);
+            textArea.AddComponent<RectMask2D>();
+
+            Text placeholder = UIFactory.CreateText(textArea.transform, "Digite o nome do operador", 15, new Color(textColor.r, textColor.g, textColor.b, 0.45f), TextAnchor.MiddleLeft, FontStyle.Italic);
+            UIFactory.Stretch(placeholder.rectTransform);
+            Text inputText = UIFactory.CreateText(textArea.transform, initialValue, 16, textColor, TextAnchor.MiddleLeft);
+            UIFactory.Stretch(inputText.rectTransform);
+
+            inputField.targetGraphic = rootImage;
+            inputField.textViewport = textAreaRect;
+            inputField.textComponent = inputText;
+            inputField.placeholder = placeholder;
+            inputField.lineType = InputField.LineType.SingleLine;
+            inputField.text = initialValue;
+            return inputField;
+        }
+
+        private void OnOperatorNameEdited(string value)
+        {
+            string fallback = theme != null ? theme.defaultOperatorName : "Operador";
+            currentOperatorName = string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            DesalgoritmizacaoPersistentProgress.SaveOperatorName(currentOperatorName, fallback);
+            RefreshRankingCanvas();
+        }
+
+        private void CommitOperatorNameFromInput()
+        {
+            string fallback = theme != null ? theme.defaultOperatorName : "Operador";
+            string value = operatorNameInput != null ? operatorNameInput.text : currentOperatorName;
+            currentOperatorName = string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            if (operatorNameInput != null)
+            {
+                operatorNameInput.text = currentOperatorName;
+            }
+            DesalgoritmizacaoPersistentProgress.SaveOperatorName(currentOperatorName, fallback);
+        }
+
+        private void BuildRankingCanvas()
+        {
+            if (sceneRig == null && screenAnchor == null)
+            {
+                return;
+            }
+
+            Transform anchor = sceneRig != null ? sceneRig.RankingAnchor : (screenAnchor != null ? screenAnchor.MainParent : transform);
+            GameObject canvasGo;
+            if (sceneRig != null)
+            {
+                rankingCanvas = sceneRig.GetOrCreateCanvasInstance("DesalgoritmizacaoRankingCanvas", null, anchor, theme.elevatedSurfaceColor);
+                canvasGo = rankingCanvas.gameObject;
+            }
+            else
+            {
+                Transform existing = anchor != null ? anchor.Find("DesalgoritmizacaoRankingCanvas") : null;
+                canvasGo = existing != null ? existing.gameObject : new GameObject("DesalgoritmizacaoRankingCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(Image));
+                if (existing == null)
+                {
+                    canvasGo.transform.SetParent(anchor != null ? anchor : transform, false);
+                }
+                rankingCanvas = canvasGo.GetComponent<Canvas>();
+                if (rankingCanvas == null)
+                {
+                    rankingCanvas = canvasGo.AddComponent<Canvas>();
+                }
+                ConfigureCanvas(rankingCanvas, canvasGo.GetComponent<RectTransform>(), true);
+            }
+
+            rankingCanvas.sortingOrder = 15;
+            Image background = EnsureComponent<Image>(canvasGo);
+            background.color = theme != null ? theme.surfaceColor : new Color(0.11f, 0.13f, 0.18f, 1f);
+
+            rankingRoot = canvasGo.transform.Find("RankingRoot") as RectTransform;
+            if (rankingRoot == null)
+            {
+                GameObject root = UIFactory.CreateUIObject("RankingRoot", canvasGo.transform);
+                rankingRoot = root.GetComponent<RectTransform>();
+                UIFactory.SetAnchors(rankingRoot, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(18f, 18f), new Vector2(-18f, -18f));
+            }
+        }
+
+        private void RefreshRankingCanvas()
+        {
+            if (rankingRoot == null)
+            {
+                return;
+            }
+
+            ClearChildren(rankingRoot);
+            VerticalLayoutGroup rootLayout = EnsureComponent<VerticalLayoutGroup>(rankingRoot.gameObject);
+            rootLayout.spacing = 8;
+            rootLayout.padding = new RectOffset(12, 12, 12, 12);
+            rootLayout.childControlWidth = true;
+            rootLayout.childControlHeight = true;
+            rootLayout.childForceExpandHeight = false;
+            rootLayout.childForceExpandWidth = true;
+
+            Text title = UIFactory.CreateText(rankingRoot, theme != null ? theme.rankingTitle : "Registro de ciclos", 22, theme != null ? theme.textPrimaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIFactory.AddLayoutElement(title.gameObject, preferredHeight: 26f);
+            Text subtitle = UIFactory.CreateText(rankingRoot, theme != null ? theme.rankingSubtitle : "Confiança comunitária define a ordem do painel.", 13, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleLeft);
+            UIFactory.AddLayoutElement(subtitle.gameObject, preferredHeight: 16f);
+
+            ScrollRect scroll = UIFactory.CreateScrollView(rankingRoot, theme != null ? theme.backgroundColor : Color.black, theme != null ? theme.backgroundColor : Color.black, out RectTransform content);
+            UIFactory.AddLayoutElement(scroll.gameObject, flexibleHeight: 1f, preferredHeight: 560f);
+            VerticalLayoutGroup layout = EnsureComponent<VerticalLayoutGroup>(content.gameObject);
+            layout.spacing = 8;
+            layout.padding = new RectOffset(8, 8, 8, 8);
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandHeight = false;
+
+            List<RankingEntryData> rankingEntries = DesalgoritmizacaoPersistentProgress.LoadRankingEntries(theme != null ? theme.rankingMaxEntries : 12);
+            if (rankingEntries.Count == 0)
+            {
+                Image empty = UIFactory.CreatePanel(content, theme != null ? theme.surfaceColor : new Color(0.11f, 0.13f, 0.18f, 1f), "EmptyRanking");
+                UIFactory.AddLayoutElement(empty.gameObject, preferredHeight: 120f);
+                UIFactory.AddVerticalLayout(empty.gameObject, 6, new RectOffset(12, 12, 12, 12), false);
+                Text emptyTitle = UIFactory.CreateText(empty.transform, "Ainda não há ciclos registrados", 16, theme != null ? theme.textPrimaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UIFactory.AddLayoutElement(emptyTitle.gameObject, preferredHeight: 20f);
+                Text emptyBody = UIFactory.CreateText(empty.transform, "Quando um ciclo termina, o resumo aparece aqui ordenado pela confiança comunitária.", 13, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.UpperLeft);
+                UIFactory.AddLayoutElement(emptyBody.gameObject, preferredHeight: 60f);
+                return;
+            }
+
+            for (int i = 0; i < rankingEntries.Count; i++)
+            {
+                RankingEntryData entry = rankingEntries[i];
+                Image card = UIFactory.CreatePanel(content, theme != null ? theme.surfaceColor : new Color(0.11f, 0.13f, 0.18f, 1f), "RankingEntry");
+                UIFactory.AddLayoutElement(card.gameObject, preferredHeight: 118f);
+                UIFactory.AddVerticalLayout(card.gameObject, 4, new RectOffset(12, 12, 10, 10), false);
+
+                Text head = UIFactory.CreateText(card.transform, "#" + (i + 1).ToString("00") + " · " + entry.playerName, 16, theme != null ? theme.textPrimaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UIFactory.AddLayoutElement(head.gameObject, preferredHeight: 20f);
+                Text summary = UIFactory.CreateText(card.transform, entry.summary, 14, theme != null ? theme.humanAccentColor : Color.yellow, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UIFactory.AddLayoutElement(summary.gameObject, preferredHeight: 18f);
+                Text metrics = UIFactory.CreateText(card.transform, "Confiança " + entry.communityTrust.ToString("00") + " · Eficiência " + entry.operational.ToString("00") + " · Sensibilidade " + entry.systemSensitivity.ToString("00"), 13, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleLeft);
+                UIFactory.AddLayoutElement(metrics.gameObject, preferredHeight: 16f);
+                Text meta = UIFactory.CreateText(card.transform, "Rodada " + entry.cycleNumber + " · " + entry.recordedAt, 12, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Italic);
+                UIFactory.AddLayoutElement(meta.gameObject, preferredHeight: 14f);
+            }
         }
 
         private Sprite ResolveInitialMenuSprite()
@@ -435,12 +713,96 @@ namespace Desalgoritmizacao.UI
             if (title != null)
             {
                 headerTitleText = EnsureComponent<Text>(title.gameObject);
+                headerTitleText.rectTransform.offsetMax = new Vector2(-200f, headerTitleText.rectTransform.offsetMax.y);
             }
 
             Transform subtitle = root.Find("Header/HeaderSubtitle");
             if (subtitle != null)
             {
                 headerSubtitleText = EnsureComponent<Text>(subtitle.gameObject);
+                headerSubtitleText.rectTransform.offsetMax = new Vector2(-200f, headerSubtitleText.rectTransform.offsetMax.y);
+            }
+
+            EnsureHeaderExitButton();
+        }
+
+        private void EnsureHeaderExitButton()
+        {
+            if (headerRoot == null)
+            {
+                return;
+            }
+
+            Transform existing = headerRoot.Find("HeaderExitButton");
+            if (existing == null)
+            {
+                GameObject buttonGo = UIFactory.CreateUIObject("HeaderExitButton", headerRoot);
+                RectTransform rect = buttonGo.GetComponent<RectTransform>();
+                rect.anchorMin = new Vector2(1f, 1f);
+                rect.anchorMax = new Vector2(1f, 1f);
+                rect.pivot = new Vector2(1f, 1f);
+                rect.sizeDelta = new Vector2(154f, 42f);
+                rect.anchoredPosition = new Vector2(-22f, -20f);
+            }
+
+            headerExitButton = PrepareButtonOnRect(headerRoot.Find("HeaderExitButton") as RectTransform, "Sair", theme != null ? theme.elevatedSurfaceColor : Color.gray, theme != null ? theme.textPrimaryColor : Color.white, 16, ReturnToInitialMenu);
+            SetHeaderExitVisible(false);
+        }
+
+        private Button PrepareButtonOnRect(RectTransform rect, string label, Color backgroundColor, Color textColor, int baseSize, UnityAction action)
+        {
+            if (rect == null)
+            {
+                return null;
+            }
+
+            Image image = EnsureComponent<Image>(rect.gameObject);
+            image.color = backgroundColor;
+
+            Button button = EnsureComponent<Button>(rect.gameObject);
+            button.targetGraphic = image;
+            button.onClick.RemoveAllListeners();
+            if (action != null)
+            {
+                button.onClick.AddListener(action);
+            }
+
+            ColorBlock colors = button.colors;
+            colors.normalColor = backgroundColor;
+            colors.highlightedColor = backgroundColor * 1.08f;
+            colors.pressedColor = backgroundColor * 0.92f;
+            colors.selectedColor = backgroundColor;
+            colors.disabledColor = new Color(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a * 0.4f);
+            button.colors = colors;
+
+            Transform labelTransform = rect.Find("Label");
+            Text labelText;
+            if (labelTransform == null)
+            {
+                GameObject labelGo = UIFactory.CreateUIObject("Label", rect);
+                RectTransform labelRect = labelGo.GetComponent<RectTransform>();
+                UIFactory.Stretch(labelRect);
+                labelText = labelGo.AddComponent<Text>();
+            }
+            else
+            {
+                labelText = EnsureComponent<Text>(labelTransform.gameObject);
+            }
+
+            labelText.font = UIFactory.DefaultFont;
+            labelText.text = label;
+            labelText.fontSize = theme.ScaleFont(baseSize);
+            labelText.color = textColor;
+            labelText.alignment = TextAnchor.MiddleCenter;
+            labelText.fontStyle = FontStyle.Bold;
+            return button;
+        }
+
+        private void SetHeaderExitVisible(bool visible)
+        {
+            if (headerExitButton != null)
+            {
+                headerExitButton.gameObject.SetActive(visible);
             }
         }
 
@@ -756,20 +1118,31 @@ namespace Desalgoritmizacao.UI
                 initialMenuCanvas.enabled = true;
             }
 
+            if (operatorNameInput != null)
+            {
+                operatorNameInput.text = currentOperatorName;
+            }
             SetHeader(theme.gameTitle, theme.presentationLine);
+            SetHeaderExitVisible(false);
         }
 
         private void ShowDashboard()
         {
+            if (cases.Count == 0)
+            {
+                PrepareNewCycle();
+            }
+
             EnsureGameplayShell();
             currentScreen = ScreenState.Dashboard;
             activeCase = session.CurrentCase(cases);
-            SetHeader("Central de triagem", theme.dashboardSummary);
+            SetHeader("Central de triagem", theme.dashboardSummary + " · Rodada " + currentCycleNumber);
             LoadScreen("Desalgoritmizacao/Prefabs/Screens/DashboardScreen", "DashboardScreen");
+            SetHeaderExitVisible(true);
 
             PreparePanel("LeftPanel", theme.surfaceColor);
             PreparePanel("RightPanel", theme.surfaceColor);
-            PrepareText("LeftPanel/DashboardIntro", "A fila desta etapa foi organizada em torno de perfis que parecem simples para o sistema, mas exigem leitura mais cuidadosa para não reproduzir exclusões invisíveis.", 18, theme.textPrimaryColor, TextAnchor.UpperLeft);
+            PrepareText("LeftPanel/DashboardIntro", "A rodada atual usa um lote aleatório controlado e sem repetição imediata. Confiança ordena o ranking externo; equilíbrio decide a continuidade do ciclo.", 18, theme.textPrimaryColor, TextAnchor.UpperLeft);
 
             PopulateMetricSlot("LeftPanel/MetricsStrip/MetricOperational", "Eficiência operacional", session.metrics.operationalEfficiency, theme.systemAccentColor);
             PopulateMetricSlot("LeftPanel/MetricsStrip/MetricTrust", "Confiança comunitária", session.metrics.communityTrust, theme.humanAccentColor);
@@ -777,7 +1150,7 @@ namespace Desalgoritmizacao.UI
 
             PreparePanel("LeftPanel/QueuePanel", theme.elevatedSurfaceColor);
             PrepareText("LeftPanel/QueuePanel/QueueTitle", theme.queueTitle, 22, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
-            PrepareText("LeftPanel/QueuePanel/QueueHint", "Abra um caso por vez. A barra lateral mostra o restante da fila.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
+            PrepareText("LeftPanel/QueuePanel/QueueHint", "Ao zerar qualquer indicador você perde. Ao levar os três a 100 você vence imediatamente.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
             ScrollBinding queueScroll = PrepareScroll("LeftPanel/QueuePanel/QueueScroll", theme.surfaceColor, theme.surfaceColor);
             VerticalLayoutGroup queueLayout = EnsureComponent<VerticalLayoutGroup>(queueScroll.content.gameObject);
             queueLayout.spacing = 10;
@@ -850,6 +1223,7 @@ namespace Desalgoritmizacao.UI
 
         private void ShowCase(bool resetCaseState)
         {
+            SetHeaderExitVisible(false);
             activeCase = session.CurrentCase(cases);
             if (activeCase == null)
             {
@@ -1125,6 +1499,8 @@ namespace Desalgoritmizacao.UI
         private void ShowResult()
         {
             currentScreen = ScreenState.Result;
+            SetHeaderExitVisible(false);
+            bool terminal = HasTerminalOutcome();
             SetHeader("Resultado imediato", "O resultado imediato aparece aqui. O impacto total continua acumulando.");
             LoadScreen("Desalgoritmizacao/Prefabs/Screens/ResultScreen", "ResultScreen");
 
@@ -1136,9 +1512,9 @@ namespace Desalgoritmizacao.UI
             PrepareText("LeftPanel/ClosingPanel/ClosingTitle", "Registro do caso", 20, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
             PrepareText("LeftPanel/ClosingPanel/ClosingBody", resolvedCase.afterCaseMessage, 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
             PrepareText("LeftPanel/ClosingPanel/AnalysisMeta", "Tempo gasto: " + lastEvaluatedDecision.analysisSeconds.ToString("0.0") + "s · camadas abertas: " + lastEvaluatedDecision.layersRead, 16, theme.humanAccentColor, TextAnchor.MiddleLeft, FontStyle.Bold);
-            PrepareButton("LeftPanel/NextButton", session.IsFinished(cases.Count) ? theme.sessionSummaryTitle : theme.nextCaseButtonLabel, theme.systemAccentColor, theme.textPrimaryColor, 18, () =>
+            PrepareButton("LeftPanel/NextButton", (terminal || session.IsFinished(cases.Count)) ? theme.sessionSummaryTitle : theme.nextCaseButtonLabel, theme.systemAccentColor, theme.textPrimaryColor, 18, () =>
             {
-                if (session.IsFinished(cases.Count))
+                if (terminal || session.IsFinished(cases.Count))
                 {
                     ShowFinalSummary();
                 }
@@ -1159,17 +1535,25 @@ namespace Desalgoritmizacao.UI
         {
             currentScreen = ScreenState.Final;
             finalEvaluation = DesalgoritmizacaoEvaluationEngine.EvaluateFinalState(session);
+            EnsureCycleSavedToRanking();
             EndingDefinition ending = FindEnding(finalEvaluation.endingId);
-            SetHeader(theme.sessionSummaryTitle, "O ciclo terminou, mas a leitura crítica permanece disponível para recalibrar o desenho da plataforma.");
+            string headerSubtitle = finalEvaluation.outcome == CycleOutcome.Victory
+                ? "Você venceu: os três indicadores chegaram a 100 antes do esgotamento do lote."
+                : finalEvaluation.outcome == CycleOutcome.Defeat
+                    ? "Você perdeu: um dos indicadores chegou a 0 e encerrou o ciclo."
+                    : "O lote da rodada terminou e a síntese do ciclo foi registrada no ranking externo.";
+            SetHeader(theme.sessionSummaryTitle, headerSubtitle);
             LoadScreen("Desalgoritmizacao/Prefabs/Screens/FinalScreen", "FinalScreen");
+            SetHeaderExitVisible(false);
 
             PreparePanel("LeftPanel", theme.surfaceColor);
             PreparePanel("RightPanel", theme.surfaceColor);
 
-            PrepareText("LeftPanel/EndingTitle", ending != null ? ending.title : "Síntese indisponível", 30, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
+            PrepareText("LeftPanel/EndingTitle", (finalEvaluation.outcome == CycleOutcome.Victory ? "Vitória · " : finalEvaluation.outcome == CycleOutcome.Defeat ? "Derrota · " : string.Empty) + (ending != null ? ending.title : "Síntese indisponível"), 30, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
             if (ending != null)
             {
-                PrepareText("LeftPanel/EndingTone", "Tonalidade do ciclo: " + ending.tone, 16, theme.humanAccentColor, TextAnchor.MiddleLeft, FontStyle.Bold);
+                string toneLine = (finalEvaluation.outcome == CycleOutcome.Victory ? "Resultado máximo" : finalEvaluation.outcome == CycleOutcome.Defeat ? "Encerramento crítico" : "Tonalidade do ciclo") + ": " + ending.tone;
+                PrepareText("LeftPanel/EndingTone", toneLine, 16, theme.humanAccentColor, TextAnchor.MiddleLeft, FontStyle.Bold);
                 PrepareText("LeftPanel/EndingBody", ending.description, 18, theme.textPrimaryColor, TextAnchor.UpperLeft);
             }
             else
@@ -1194,6 +1578,7 @@ namespace Desalgoritmizacao.UI
             PrepareButton("LeftPanel/RestartButton", theme.restartButtonLabel, theme.systemAccentColor, theme.textPrimaryColor, 18, () =>
             {
                 session.ResetFromTheme(theme);
+                cases.Clear();
                 ShowMenu();
             });
 
