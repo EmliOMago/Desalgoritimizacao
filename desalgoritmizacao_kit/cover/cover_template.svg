@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<g id="background"><image href="01_background_cover.png" x="0" y="0" width="1920" height="1080"/></g>
+<g id="title_panel"><image href="06_title_panel.png" x="70" y="85" width="860" height="260"/></g>
+<g id="icon"><image href="03_icon_card.png" x="1320" y="120" width="520" height="520"/></g>
+<g id="screens">
+  <image href="04_gameplay_fila_card.png" x="70" y="520" width="840" height="510"/>
+  <image href="05_gameplay_analise_card.png" x="830" y="520" width="840" height="510"/>
+</g>
+<g id="chip">
+  <rect x="110" y="125" rx="18" ry="18" width="292" height="38" fill="rgba(64,161,255,0.12)" stroke="rgba(64,161,255,0.5)" stroke-width="2"/>
+  <text x="132" y="151" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="rgb(64,161,255)">DESIGN DE INTERAÇÃO</text>
+</g>
+<g id="text">
+  <text x="110" y="250" font-family="DejaVu Sans" font-size="86" font-weight="700" fill="rgb(239,241,247)">Desalgoritmização</text>
+  <text x="110" y="315" font-family="DejaVu Sans" font-size="31" font-weight="400" fill="rgb(171,179,196)"><tspan x="110" dy="0">Perfis, documentos, algoritmo e investigação</tspan><tspan x="110" dy="40">contextual em um jogo narrativo sobre decisões</tspan><tspan x="110" dy="40">que afetam oportunidades reais.</tspan></text>
+</g>
+<g id="feature_chips">
+  <rect x="110" y="430" rx="18" ry="18" width="104" height="44" fill="rgba(18,27,49,0.86)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <text x="127" y="459" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="rgb(64,161,255)">Perfis</text>
+  <rect x="228" y="430" rx="18" ry="18" width="130" height="44" fill="rgba(18,27,49,0.86)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <text x="245" y="459" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="rgb(216,168,47)">Pesquisa</text>
+  <rect x="372" y="430" rx="18" ry="18" width="150" height="44" fill="rgba(18,27,49,0.86)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <text x="389" y="459" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="rgb(66,201,165)">Algoritmo</text>
+  <rect x="536" y="430" rx="18" ry="18" width="168" height="44" fill="rgba(18,27,49,0.86)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <text x="553" y="459" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="rgb(90,62,220)">Documentos</text>
+</g>
+</svg>
