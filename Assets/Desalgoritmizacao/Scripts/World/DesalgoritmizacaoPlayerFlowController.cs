@@ -75,8 +75,10 @@ namespace Desalgoritmizacao.World
 
         private StationType currentStation = StationType.None;
         private Collider currentStationTrigger;
+        private Transform currentStationAnchor;
         private bool stationAllowsUiInteraction;
         private bool stationAllowsTemporaryLook;
+        private bool printerAwaitingFreshEntry;
         private bool isExitPromptVisible;
         private bool isPrinterPending;
         private bool isPrinterRunning;
@@ -182,6 +184,7 @@ namespace Desalgoritmizacao.World
             UpdateTopBanner();
             UpdateExitPrompt();
             UpdateAtendimentoScheduling();
+            UpdatePendingPrinterEntryState();
 
             if (isExitPromptVisible)
             {
@@ -242,7 +245,7 @@ namespace Desalgoritmizacao.World
 
             if (other == triggerImpressora)
             {
-                if (isPrinterPending && !isAtendimentoRequested && !isExitPromptVisible && currentStation == StationType.None)
+                if (isPrinterPending && !printerAwaitingFreshEntry && !isAtendimentoRequested && !isExitPromptVisible && currentStation == StationType.None)
                 {
                     DockAtStation(StationType.Impressora, triggerImpressora, localCamImpre, false, false);
                     BeginPrinterRun();
@@ -416,9 +419,14 @@ namespace Desalgoritmizacao.World
 
         private void UpdatePcDock()
         {
-            if (stationAllowsTemporaryLook && stationLookModifierAction != null && stationLookModifierAction.IsPressed())
+            bool isUsingTemporaryLook = stationAllowsTemporaryLook && stationLookModifierAction != null && stationLookModifierAction.IsPressed();
+            if (isUsingTemporaryLook)
             {
                 ApplyDockLook(config != null ? config.stationLookSensitivity : 0.08f);
+            }
+            else
+            {
+                MaintainDockAlignment();
             }
 
             Vector2 moveValue = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;
@@ -430,10 +438,17 @@ namespace Desalgoritmizacao.World
 
         private void UpdatePrinterDock()
         {
+            MaintainDockAlignment();
+
             if (isPrinterRunning)
             {
                 UpdatePrinterQuickTime();
                 return;
+            }
+
+            if (isPrinterPending && printerAwaitingFreshEntry && !IsPlayerInsideTrigger(triggerImpressora))
+            {
+                printerAwaitingFreshEntry = false;
             }
 
             if (isPrinterPending && activePrinterRun == null && printerRestartAt > Time.unscaledTime)
@@ -481,6 +496,7 @@ namespace Desalgoritmizacao.World
 
             currentStation = stationType;
             currentStationTrigger = stationTrigger;
+            currentStationAnchor = stationAnchor;
             stationAllowsUiInteraction = allowUiInteraction;
             stationAllowsTemporaryLook = allowTemporaryLook;
             desiredMovement = Vector3.zero;
@@ -504,19 +520,39 @@ namespace Desalgoritmizacao.World
             PushPlayerOutOfTrigger(currentStationTrigger);
             currentStation = StationType.None;
             currentStationTrigger = null;
+            currentStationAnchor = null;
             stationAllowsUiInteraction = false;
             stationAllowsTemporaryLook = false;
             bodyYaw = transform.eulerAngles.y;
             cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
+            RefreshPrinterUi();
         }
 
         private void MatchCameraToAnchor(Transform anchor)
         {
+            if (anchor == null || targetCamera == null)
+            {
+                return;
+            }
+
             Quaternion playerRotation = anchor.rotation * Quaternion.Inverse(targetCamera.transform.localRotation);
             Vector3 playerPosition = anchor.position - (playerRotation * targetCamera.transform.localPosition);
             playerBody.position = playerPosition;
             playerBody.rotation = playerRotation;
             transform.SetPositionAndRotation(playerPosition, playerRotation);
+            Physics.SyncTransforms();
+        }
+
+        private void MaintainDockAlignment()
+        {
+            if (currentStationAnchor == null)
+            {
+                return;
+            }
+
+            MatchCameraToAnchor(currentStationAnchor);
+            bodyYaw = transform.eulerAngles.y;
+            cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
         }
 
         private void PushPlayerOutOfTrigger(Collider trigger)
@@ -544,6 +580,17 @@ namespace Desalgoritmizacao.World
             playerBody.position = desiredPlayerPosition;
         }
 
+        private bool IsPlayerInsideTrigger(Collider trigger)
+        {
+            if (trigger == null || targetCamera == null)
+            {
+                return false;
+            }
+
+            Vector3 closestPoint = trigger.ClosestPoint(targetCamera.transform.position);
+            return (closestPoint - targetCamera.transform.position).sqrMagnitude <= 0.0001f;
+        }
+
         private void HandleRegisterAndReturnToCentral()
         {
             if (isAtendimentoRequested || isExitPromptVisible)
@@ -552,6 +599,10 @@ namespace Desalgoritmizacao.World
             }
 
             isPrinterPending = true;
+            printerAwaitingFreshEntry = true;
+            printerRestartAt = 0f;
+            activePrinterRun = null;
+            isPrinterRunning = false;
             if (triggerImpressora != null)
             {
                 triggerImpressora.enabled = true;
@@ -560,6 +611,11 @@ namespace Desalgoritmizacao.World
             if (currentStation == StationType.Pc)
             {
                 ReleaseCurrentStation();
+            }
+
+            if (!IsPlayerInsideTrigger(triggerImpressora))
+            {
+                printerAwaitingFreshEntry = false;
             }
         }
 
@@ -661,15 +717,24 @@ namespace Desalgoritmizacao.World
         {
             isPrinterRunning = false;
             isPrinterPending = false;
+            printerAwaitingFreshEntry = false;
             completedPrinterRuns++;
             activePrinterRun = null;
+            printerRestartAt = 0f;
             if (triggerImpressora != null)
             {
                 triggerImpressora.enabled = false;
             }
 
             ShowTemporaryBanner(printerConfig != null ? printerConfig.successMessage : "Registro impresso. Retorne ao terminal.");
-            RefreshPrinterUi();
+            if (currentStation == StationType.Impressora)
+            {
+                ReleaseCurrentStation();
+            }
+            else
+            {
+                RefreshPrinterUi();
+            }
         }
 
         private void FailPrinterRun()
@@ -855,6 +920,14 @@ namespace Desalgoritmizacao.World
         {
             temporaryBannerMessage = message;
             temporaryBannerUntil = Time.unscaledTime + (config != null ? config.feedbackBannerSeconds : 2f);
+        }
+
+        private void UpdatePendingPrinterEntryState()
+        {
+            if (isPrinterPending && printerAwaitingFreshEntry && !IsPlayerInsideTrigger(triggerImpressora))
+            {
+                printerAwaitingFreshEntry = false;
+            }
         }
 
         private void UpdateExitPrompt()
