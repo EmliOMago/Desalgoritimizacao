@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5df6257131d9486a93d0b2f24f4f5701, type: 3}
+  m_Name: PrinterQuickTimeConfig
+  m_EditorClassIdentifier: 
+  upTexture: {fileID: 2800000, guid: 73cd87f71fd41ad4cbb557e042f85662, type: 3}
+  downTexture: {fileID: 2800000, guid: 944a3f122b1323e44a0afe0e040c717d, type: 3}
+  leftTexture: {fileID: 2800000, guid: a914379bc88cd06438c368a20768242a, type: 3}
+  rightTexture: {fileID: 2800000, guid: 05ac9479375fec040b4d6de082fb9aac, type: 3}
+  minimumSequenceLength: 4
+  maximumSequenceLength: 8
+  minimumInputWindowSeconds: 0.45
+  maximumInputWindowSeconds: 0.95
+  restartPauseSeconds: 0.65
+  previewIconCount: 4
+  title: GPImpre
+  subtitle: Acione as setas na ordem certa para concluir a impressão.
+  successMessage: Registro impresso. Retorne ao terminal.
+  failureMessage: Falha na impressão. Reiniciando sequência.

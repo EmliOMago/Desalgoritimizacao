@@ -33,6 +33,21 @@ namespace Desalgoritmizacao.Bootstrap
 #endif
             }
 
+            GameObject playerObject = GameObject.Find("jogador");
+            if (playerObject == null)
+            {
+                Rigidbody rigidbody = Object.FindFirstObjectByType<Rigidbody>();
+                if (rigidbody != null && rigidbody.GetComponentInChildren<Camera>(true) != null)
+                {
+                    playerObject = rigidbody.gameObject;
+                }
+            }
+
+            if (playerObject != null && playerObject.GetComponent<DesalgoritmizacaoPlayerFlowController>() == null)
+            {
+                playerObject.AddComponent<DesalgoritmizacaoPlayerFlowController>();
+            }
+
             Camera sceneCamera = Camera.main;
             if (sceneCamera == null)
             {
@@ -40,6 +55,7 @@ namespace Desalgoritmizacao.Bootstrap
             }
 
             if (Object.FindFirstObjectByType<DesalgoritmizacaoSceneRig>() == null &&
+                playerObject == null &&
                 sceneCamera != null &&
                 sceneCamera.GetComponent<DesalgoritmizacaoTemporaryCameraLook>() == null)
             {

@@ -12,6 +12,11 @@ namespace Desalgoritmizacao.UI
 {
     public class DesalgoritmizacaoApp : MonoBehaviour
     {
+        public static DesalgoritmizacaoApp Instance { get; private set; }
+        public Canvas MainCanvas => mainCanvas;
+        public bool IsInInitialMenu => currentScreen == ScreenState.Menu;
+        public bool IsDashboardScreen => currentScreen == ScreenState.Dashboard;
+
         private enum ScreenState
         {
             Menu,
@@ -69,6 +74,7 @@ namespace Desalgoritmizacao.UI
 
         private void Awake()
         {
+            Instance = this;
             ResolveSceneAnchor();
             LoadData();
             currentOperatorName = DesalgoritmizacaoPersistentProgress.LoadOperatorName(theme != null ? theme.defaultOperatorName : "Operador");
@@ -77,6 +83,14 @@ namespace Desalgoritmizacao.UI
             BuildRankingCanvas();
             RefreshRankingCanvas();
             ShowMenu();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
 
         private void Update()
@@ -812,10 +826,27 @@ namespace Desalgoritmizacao.UI
                 headerTitleText.text = title;
             }
 
+            string composedSubtitle = ComposeSubtitle(subtitle);
             if (headerSubtitleText != null)
             {
-                headerSubtitleText.text = subtitle;
+                headerSubtitleText.text = composedSubtitle;
             }
+        }
+
+        private string ComposeSubtitle(string subtitle)
+        {
+            string externalStatus = DesalgoritmizacaoGameplayBridge.GetExternalStatus();
+            if (string.IsNullOrWhiteSpace(externalStatus))
+            {
+                return subtitle;
+            }
+
+            if (string.IsNullOrWhiteSpace(subtitle))
+            {
+                return externalStatus;
+            }
+
+            return subtitle + " · " + externalStatus;
         }
 
         private void ClearContent()
@@ -1149,7 +1180,14 @@ namespace Desalgoritmizacao.UI
 
             PreparePanel("LeftPanel/QueuePanel", theme.elevatedSurfaceColor);
             PrepareText("LeftPanel/QueuePanel/QueueTitle", theme.queueTitle, 22, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
-            PrepareText("LeftPanel/QueuePanel/QueueHint", "Ao zerar qualquer indicador você perde. Ao levar os três a 100 você vence imediatamente.", 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
+            string workflowBlockReason;
+            bool canOpenWorkflow = DesalgoritmizacaoGameplayBridge.CanOpenOperatorWorkflow(out workflowBlockReason);
+            string queueHint = "Ao zerar qualquer indicador você perde. Ao levar os três a 100 você vence imediatamente.";
+            if (!string.IsNullOrWhiteSpace(workflowBlockReason))
+            {
+                queueHint += "\n\nStatus atual: " + workflowBlockReason + ".";
+            }
+            PrepareText("LeftPanel/QueuePanel/QueueHint", queueHint, 16, theme.textSecondaryColor, TextAnchor.UpperLeft);
             ScrollBinding queueScroll = PrepareScroll("LeftPanel/QueuePanel/QueueScroll", theme.surfaceColor, theme.surfaceColor);
             VerticalLayoutGroup queueLayout = EnsureComponent<VerticalLayoutGroup>(queueScroll.content.gameObject);
             queueLayout.spacing = 10;
@@ -1179,7 +1217,16 @@ namespace Desalgoritmizacao.UI
                 {
                     Button analyzeButton = UIFactory.CreateButton(card.transform, theme.beginCaseButtonLabel, theme.systemAccentColor, theme.textPrimaryColor, 16);
                     UIFactory.AddLayoutElement(analyzeButton.gameObject, preferredHeight: 34f);
-                    analyzeButton.onClick.AddListener(() => ShowCase(true));
+                    analyzeButton.interactable = canOpenWorkflow;
+                    if (canOpenWorkflow)
+                    {
+                        analyzeButton.onClick.AddListener(() => ShowCase(true));
+                    }
+                    else
+                    {
+                        Text blocked = UIFactory.CreateText(card.transform, workflowBlockReason, 14, theme.warningColor, TextAnchor.MiddleLeft, FontStyle.Italic);
+                        UIFactory.AddLayoutElement(blocked.gameObject, preferredHeight: 22f);
+                    }
                 }
                 else
                 {
@@ -1519,6 +1566,7 @@ namespace Desalgoritmizacao.UI
                 }
                 else
                 {
+                    DesalgoritmizacaoGameplayBridge.NotifyRegisterAndReturnToCentral();
                     ShowDashboard();
                 }
             });

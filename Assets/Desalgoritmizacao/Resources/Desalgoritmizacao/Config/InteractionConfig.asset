@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bf0bbca67814d77a45af67a0a4e6901, type: 3}
+  m_Name: InteractionConfig
+  m_EditorClassIdentifier: 
+  runtimeInputJsonResourcePath: Desalgoritmizacao/Config/InputSystem_Actions_Runtime
+  editorSourceRelativePath: InputSystem_Actions.inputactions
+  playerActionMap: Player
+  moveActionName: Move
+  lookActionName: Look
+  stationLookModifierActionName: StationLook
+  printerUpActionName: PrinterUp
+  printerDownActionName: PrinterDown
+  printerLeftActionName: PrinterLeft
+  printerRightActionName: PrinterRight
+  moveSpeed: 2.9
+  lookSensitivity: 0.1
+  stationLookSensitivity: 0.08
+  minimumPitch: -70
+  maximumPitch: 72
+  stationReleaseDistance: 1.35
+  atendimentoMinDelaySeconds: 25
+  atendimentoMaxDelaySeconds: 55
+  feedbackBannerSeconds: 2
+  printerQuickTimeConfig: {fileID: 11400000, guid: d7a6fb95d07d4896bb53c02607ef7001, type: 2}
