@@ -57,6 +57,9 @@ namespace Desalgoritmizacao.World
         private Transform localCamPc;
         private Transform localCamImpre;
         private Transform localCamInicio;
+        private Transform pontoEntrada;
+        private Transform pontoAtendimento;
+        private Transform pontoSaida;
         private Collider triggerPc;
         private Collider triggerImpressora;
         private Collider triggerPorta;
@@ -88,6 +91,7 @@ namespace Desalgoritmizacao.World
         private bool isPrinterPending;
         private bool isPrinterRunning;
         private bool isAtendimentoRequested;
+        private DesalgoritmizacaoAtendimentoNpc activeAtendimentoNpc;
         private bool gameplayStarted;
         private float nextAtendimentoRequestAt;
         private float temporaryBannerUntil;
@@ -138,7 +142,7 @@ namespace Desalgoritmizacao.World
         {
             get
             {
-                return !isAtendimentoRequested && !isPrinterPending && !isPrinterRunning && !isExitPromptVisible;
+                return !isAtendimentoRequested && activeAtendimentoNpc == null && !isPrinterPending && !isPrinterRunning && !isExitPromptVisible;
             }
         }
 
@@ -149,6 +153,11 @@ namespace Desalgoritmizacao.World
                 if (isAtendimentoRequested)
                 {
                     return "Atendimento solicitado";
+                }
+
+                if (activeAtendimentoNpc != null)
+                {
+                    return "Atendimento em andamento";
                 }
 
                 if (isPrinterPending || isPrinterRunning)
@@ -272,7 +281,7 @@ namespace Desalgoritmizacao.World
 
             if (other == triggerImpressora)
             {
-                if (isPrinterPending && !printerAwaitingFreshEntry && !isAtendimentoRequested && !isExitPromptVisible && currentStation == StationType.None)
+                if (isPrinterPending && !printerAwaitingFreshEntry && activeAtendimentoNpc == null && !isAtendimentoRequested && !isExitPromptVisible && currentStation == StationType.None)
                 {
                     DockAtStation(StationType.Impressora, triggerImpressora, localCamImpre, false, false);
                     BeginPrinterRun();
@@ -298,7 +307,7 @@ namespace Desalgoritmizacao.World
 
         private void OnTriggerStay(Collider other)
         {
-            if (other == null || currentStation != StationType.None || isExitPromptVisible || isAtendimentoRequested)
+            if (other == null || currentStation != StationType.None || isExitPromptVisible || isAtendimentoRequested || activeAtendimentoNpc != null)
             {
                 return;
             }
@@ -316,7 +325,7 @@ namespace Desalgoritmizacao.World
                 return;
             }
 
-            if (pcAwaitingFreshEntry || isPrinterPending || isPrinterRunning || isAtendimentoRequested || isExitPromptVisible)
+            if (pcAwaitingFreshEntry || isPrinterPending || isPrinterRunning || isAtendimentoRequested || activeAtendimentoNpc != null || isExitPromptVisible)
             {
                 return;
             }
@@ -340,6 +349,9 @@ namespace Desalgoritmizacao.World
             localCamPc = FindTransformByName("LocalCamPC");
             localCamImpre = FindTransformByName("LocalCamImpre");
             localCamInicio = FindTransformByName("LocalCamInicio") ?? FindTransformByName("LocalCaminicio");
+            pontoEntrada = FindTransformByName("PontoEntrada");
+            pontoAtendimento = FindTransformByName("PontoAtendimento");
+            pontoSaida = FindTransformByName("PontoSaida");
             triggerPc = FindColliderByName("TriggerPC");
             triggerImpressora = FindColliderByName("TriggerImpressora");
             triggerPorta = FindColliderByName("TriggerPorta");
@@ -815,6 +827,11 @@ namespace Desalgoritmizacao.World
             {
                 isAtendimentoRequested = false;
                 ScheduleNextAtendimento();
+            }
+
+            if (activeAtendimentoNpc != null)
+            {
+                ClearActiveAtendimentoNpc(false);
             }
 
             SaveStationExitPose();
@@ -1432,18 +1449,22 @@ namespace Desalgoritmizacao.World
                     ScheduleNextAtendimento();
                 }
 
+                if (activeAtendimentoNpc != null)
+                {
+                    ClearActiveAtendimentoNpc(true);
+                }
+
                 return;
             }
 
-            if (isAtendimentoRequested)
+            if (isAtendimentoRequested || activeAtendimentoNpc != null)
             {
                 return;
             }
 
             if (Time.unscaledTime >= nextAtendimentoRequestAt)
             {
-                isAtendimentoRequested = true;
-                ShowTemporaryBanner("Atendimento solicitado");
+                SpawnAtendimentoNpc();
             }
         }
 
@@ -1451,7 +1472,86 @@ namespace Desalgoritmizacao.World
         {
             isAtendimentoRequested = false;
             ShowTemporaryBanner("Atendimento concluído");
-            ScheduleNextAtendimento();
+
+            if (activeAtendimentoNpc != null)
+            {
+                activeAtendimentoNpc.BeginLeaving();
+            }
+            else
+            {
+                ScheduleNextAtendimento();
+            }
+        }
+
+        private void SpawnAtendimentoNpc()
+        {
+            if (activeAtendimentoNpc != null)
+            {
+                return;
+            }
+
+            if (pontoEntrada == null || pontoAtendimento == null || pontoSaida == null)
+            {
+                isAtendimentoRequested = true;
+                ShowTemporaryBanner("Atendimento solicitado");
+                return;
+            }
+
+            GameObject[] npcPrefabs = Resources.LoadAll<GameObject>("Desalgoritmizacao/NPCs");
+            if (npcPrefabs == null || npcPrefabs.Length == 0)
+            {
+                isAtendimentoRequested = true;
+                ShowTemporaryBanner("Atendimento solicitado");
+                return;
+            }
+
+            GameObject visualPrefab = npcPrefabs[UnityEngine.Random.Range(0, npcPrefabs.Length)];
+            GameObject npcRoot = new GameObject("NPC_Atendimento");
+            npcRoot.transform.position = pontoEntrada.position;
+            npcRoot.transform.rotation = pontoEntrada.rotation;
+
+            activeAtendimentoNpc = npcRoot.AddComponent<DesalgoritmizacaoAtendimentoNpc>();
+            activeAtendimentoNpc.Initialize(visualPrefab, pontoAtendimento, pontoSaida, transform, OnAtendimentoNpcReachedDesk, OnAtendimentoNpcExited);
+        }
+
+        private void OnAtendimentoNpcReachedDesk(DesalgoritmizacaoAtendimentoNpc npc)
+        {
+            if (npc == null || npc != activeAtendimentoNpc)
+            {
+                return;
+            }
+
+            isAtendimentoRequested = true;
+            ShowTemporaryBanner("Atendimento solicitado");
+        }
+
+        private void OnAtendimentoNpcExited(DesalgoritmizacaoAtendimentoNpc npc)
+        {
+            if (npc == activeAtendimentoNpc)
+            {
+                activeAtendimentoNpc = null;
+            }
+
+            if (!isAtendimentoRequested)
+            {
+                ScheduleNextAtendimento();
+            }
+        }
+
+        private void ClearActiveAtendimentoNpc(bool scheduleNextRequest)
+        {
+            if (activeAtendimentoNpc != null)
+            {
+                DesalgoritmizacaoAtendimentoNpc npc = activeAtendimentoNpc;
+                activeAtendimentoNpc = null;
+                npc.DisposeImmediately();
+            }
+
+            isAtendimentoRequested = false;
+            if (scheduleNextRequest)
+            {
+                ScheduleNextAtendimento();
+            }
         }
 
         private void ScheduleNextAtendimento()
