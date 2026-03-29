@@ -7,6 +7,10 @@ using Desalgoritmizacao.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem.UI;
+#endif
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -97,7 +101,10 @@ namespace Desalgoritmizacao.World
         private bool hasSavedStationExitPose;
         private Vector3 savedStationPlayerPosition;
         private Quaternion savedStationPlayerRotation = Quaternion.identity;
+        private Transform savedStationCameraParent;
+        private Vector3 savedStationCameraLocalPosition;
         private Quaternion savedStationCameraLocalRotation = Quaternion.identity;
+        private bool isCameraAttachedToStation;
         private float stationLookYawOffset;
         private float stationLookPitchOffset;
         private float stationBasePlayerYaw;
@@ -168,6 +175,7 @@ namespace Desalgoritmizacao.World
             CreateOverlayCanvas();
             BindBridge();
             DisableLegacyCameraLook();
+            DisableUnexpectedCursorComponents();
             LoadInputActions();
             SnapToInitialCamera();
             ScheduleNextAtendimento();
@@ -320,6 +328,41 @@ namespace Desalgoritmizacao.World
             }
         }
 
+        private void DisableUnexpectedCursorComponents()
+        {
+            MonoBehaviour[] behaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                MonoBehaviour behaviour = behaviours[i];
+                if (behaviour == null || behaviour == this)
+                {
+                    continue;
+                }
+
+                Type type = behaviour.GetType();
+                string fullName = type.FullName ?? type.Name;
+                if (fullName.IndexOf("cursor", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    continue;
+                }
+
+                string ns = type.Namespace ?? string.Empty;
+                if (ns.StartsWith("Unity", StringComparison.Ordinal) || ns.StartsWith("TMPro", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+#if ENABLE_INPUT_SYSTEM
+                if (behaviour is InputSystemUIInputModule)
+                {
+                    continue;
+                }
+#endif
+
+                behaviour.enabled = false;
+            }
+        }
+
         private void BindBridge()
         {
             DesalgoritmizacaoGameplayBridge.ExternalStatusProvider = () => CurrentStatusMessage;
@@ -356,6 +399,7 @@ namespace Desalgoritmizacao.World
             printerDownAction = playerMap.FindAction(config != null ? config.printerDownActionName : "PrinterDown", true);
             printerLeftAction = playerMap.FindAction(config != null ? config.printerLeftActionName : "PrinterLeft", true);
             printerRightAction = playerMap.FindAction(config != null ? config.printerRightActionName : "PrinterRight", true);
+            ConfigureUiInputModule();
         }
 
         private string TryLoadInputJsonFromProject()
@@ -366,6 +410,53 @@ namespace Desalgoritmizacao.World
             string absolutePath = Path.Combine(Application.dataPath, relativePath);
             return File.Exists(absolutePath) ? File.ReadAllText(absolutePath) : string.Empty;
         }
+
+        private void ConfigureUiInputModule()
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (runtimeInputActions == null)
+            {
+                return;
+            }
+
+            EventSystem eventSystem = UnityEngine.Object.FindFirstObjectByType<EventSystem>();
+            if (eventSystem == null)
+            {
+                return;
+            }
+
+            InputSystemUIInputModule module = eventSystem.GetComponent<InputSystemUIInputModule>();
+            if (module == null)
+            {
+                module = eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
+            }
+
+            InputActionMap uiMap = runtimeInputActions.FindActionMap("UI", false);
+            if (uiMap == null)
+            {
+                return;
+            }
+
+            module.actionsAsset = runtimeInputActions;
+            module.move = CreateActionReference(uiMap.FindAction("Navigate", false));
+            module.submit = CreateActionReference(uiMap.FindAction("Submit", false));
+            module.cancel = CreateActionReference(uiMap.FindAction("Cancel", false));
+            module.point = CreateActionReference(uiMap.FindAction("Point", false));
+            module.leftClick = CreateActionReference(uiMap.FindAction("Click", false));
+            module.rightClick = CreateActionReference(uiMap.FindAction("RightClick", false));
+            module.middleClick = CreateActionReference(uiMap.FindAction("MiddleClick", false));
+            module.scrollWheel = CreateActionReference(uiMap.FindAction("ScrollWheel", false));
+            module.trackedDevicePosition = CreateActionReference(uiMap.FindAction("TrackedDevicePosition", false));
+            module.trackedDeviceOrientation = CreateActionReference(uiMap.FindAction("TrackedDeviceOrientation", false));
+#endif
+        }
+
+#if ENABLE_INPUT_SYSTEM
+        private static InputActionReference CreateActionReference(InputAction action)
+        {
+            return action != null ? InputActionReference.Create(action) : null;
+        }
+#endif
 
         private void SnapToInitialCamera()
         {
@@ -395,7 +486,6 @@ namespace Desalgoritmizacao.World
         {
             return gameplayStarted &&
                    currentStation == StationType.None &&
-                   !isPrinterPending &&
                    !isPrinterRunning &&
                    !isExitPromptVisible &&
                    app != null &&
@@ -419,7 +509,7 @@ namespace Desalgoritmizacao.World
                 return true;
             }
 
-            if (isPrinterPending || isPrinterRunning || isExitPromptVisible)
+            if (isPrinterRunning || isExitPromptVisible)
             {
                 return true;
             }
@@ -540,21 +630,22 @@ namespace Desalgoritmizacao.World
 
         private void ApplyDockAnchorPose()
         {
-            if (currentStationAnchor == null || targetCamera == null || playerBody == null)
+            if (currentStationAnchor == null || targetCamera == null)
             {
                 return;
             }
 
-            Quaternion playerRotation = Quaternion.Euler(0f, stationBasePlayerYaw + stationLookYawOffset, 0f);
-            Vector3 playerPosition = currentStationAnchor.position - (playerRotation * targetCamera.transform.localPosition);
-            playerBody.position = playerPosition;
-            playerBody.rotation = playerRotation;
-            transform.SetPositionAndRotation(playerPosition, playerRotation);
-            targetCamera.transform.localRotation = stationBaseCameraLocalRotation * Quaternion.Euler(stationLookPitchOffset, 0f, 0f);
+            if (!isCameraAttachedToStation || targetCamera.transform.parent != currentStationAnchor)
+            {
+                AttachCameraToStationAnchor(currentStationAnchor);
+            }
+
+            targetCamera.transform.localPosition = Vector3.zero;
+            targetCamera.transform.localRotation = Quaternion.Euler(stationLookPitchOffset, stationLookYawOffset, 0f);
             Physics.SyncTransforms();
 
             bodyYaw = transform.eulerAngles.y;
-            cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
+            cameraPitch = NormalizeAngle(targetCamera.transform.eulerAngles.x);
         }
 
         private void DockAtStation(StationType stationType, Collider stationTrigger, Transform stationAnchor, bool allowUiInteraction, bool allowTemporaryLook)
@@ -571,19 +662,19 @@ namespace Desalgoritmizacao.World
             }
 
             SaveStationExitPose();
+            AttachCameraToStationAnchor(stationAnchor);
             currentStation = stationType;
             currentStationTrigger = stationTrigger;
             currentStationAnchor = stationAnchor;
             stationAllowsUiInteraction = allowUiInteraction;
             stationAllowsTemporaryLook = allowTemporaryLook;
             desiredMovement = Vector3.zero;
-            MatchCameraToAnchor(stationAnchor);
             stationLookYawOffset = 0f;
             stationLookPitchOffset = 0f;
             stationBasePlayerYaw = transform.eulerAngles.y;
-            stationBaseCameraLocalRotation = targetCamera.transform.localRotation;
+            stationBaseCameraLocalRotation = Quaternion.identity;
             bodyYaw = transform.eulerAngles.y;
-            cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
+            cameraPitch = NormalizeAngle(targetCamera.transform.eulerAngles.x);
         }
 
         private void ReleaseCurrentStation()
@@ -636,23 +727,70 @@ namespace Desalgoritmizacao.World
             hasSavedStationExitPose = true;
             savedStationPlayerPosition = playerBody.position;
             savedStationPlayerRotation = playerBody.rotation;
+            savedStationCameraParent = targetCamera.transform.parent;
+            savedStationCameraLocalPosition = targetCamera.transform.localPosition;
             savedStationCameraLocalRotation = targetCamera.transform.localRotation;
         }
 
         private void RestoreSavedStationExitPose()
         {
-            if (!hasSavedStationExitPose || playerBody == null || targetCamera == null)
+            if (playerBody == null || targetCamera == null)
             {
                 PushPlayerOutOfTrigger(currentStationTrigger);
                 return;
             }
 
+            if (!hasSavedStationExitPose)
+            {
+                RestoreCameraFromStationAnchor();
+                PushPlayerOutOfTrigger(currentStationTrigger);
+                return;
+            }
+
+            RestoreCameraFromStationAnchor();
             playerBody.position = savedStationPlayerPosition;
             playerBody.rotation = savedStationPlayerRotation;
             transform.SetPositionAndRotation(savedStationPlayerPosition, savedStationPlayerRotation);
+            targetCamera.transform.localPosition = savedStationCameraLocalPosition;
             targetCamera.transform.localRotation = savedStationCameraLocalRotation;
             Physics.SyncTransforms();
             hasSavedStationExitPose = false;
+        }
+
+        private void AttachCameraToStationAnchor(Transform stationAnchor)
+        {
+            if (stationAnchor == null || targetCamera == null)
+            {
+                return;
+            }
+
+            if (!isCameraAttachedToStation)
+            {
+                savedStationCameraParent = targetCamera.transform.parent;
+                savedStationCameraLocalPosition = targetCamera.transform.localPosition;
+                savedStationCameraLocalRotation = targetCamera.transform.localRotation;
+            }
+
+            targetCamera.transform.SetParent(stationAnchor, false);
+            targetCamera.transform.localPosition = Vector3.zero;
+            targetCamera.transform.localRotation = Quaternion.identity;
+            isCameraAttachedToStation = true;
+            Physics.SyncTransforms();
+        }
+
+        private void RestoreCameraFromStationAnchor()
+        {
+            if (!isCameraAttachedToStation || targetCamera == null)
+            {
+                return;
+            }
+
+            Transform parent = savedStationCameraParent != null ? savedStationCameraParent : transform;
+            targetCamera.transform.SetParent(parent, false);
+            targetCamera.transform.localPosition = savedStationCameraLocalPosition;
+            targetCamera.transform.localRotation = savedStationCameraLocalRotation;
+            isCameraAttachedToStation = false;
+            Physics.SyncTransforms();
         }
 
         private void MaintainDockAlignment()
@@ -665,6 +803,7 @@ namespace Desalgoritmizacao.World
         private void PushPlayerOutOfTrigger(Collider trigger)
         {
             hasSavedStationExitPose = false;
+            RestoreCameraFromStationAnchor();
             if (trigger == null)
             {
                 return;
@@ -917,6 +1056,10 @@ namespace Desalgoritmizacao.World
             }
 
             bool allowMenuCursor = gameplayStarted && currentStation == StationType.Pc && stationAllowsUiInteraction && !isAtendimentoRequested && !isExitPromptVisible;
+            if (allowMenuCursor)
+            {
+                DisableUnexpectedCursorComponents();
+            }
 
             ApplyCursorState();
 
