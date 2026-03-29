@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Desalgoritmizacao.Data;
 using Desalgoritmizacao.Runtime;
 using Desalgoritmizacao.World;
@@ -540,6 +541,11 @@ namespace Desalgoritmizacao.UI
             Image rootImage = root.AddComponent<Image>();
             rootImage.color = frameColor;
             InputField inputField = root.AddComponent<InputField>();
+            RectTransform rootRect = root.GetComponent<RectTransform>();
+            if (rootRect != null)
+            {
+                rootRect.sizeDelta = new Vector2(0f, 42f);
+            }
 
             GameObject textArea = UIFactory.CreateUIObject("TextArea", root.transform);
             RectTransform textAreaRect = textArea.GetComponent<RectTransform>();
@@ -548,17 +554,63 @@ namespace Desalgoritmizacao.UI
             textAreaRect.offsetMax = new Vector2(-10f, -6f);
             textArea.AddComponent<RectMask2D>();
 
-            Text placeholder = UIFactory.CreateText(textArea.transform, "Digite o nome do operador", 15, new Color(textColor.r, textColor.g, textColor.b, 0.45f), TextAnchor.MiddleLeft, FontStyle.Italic);
-            UIFactory.Stretch(placeholder.rectTransform);
-            Text inputText = UIFactory.CreateText(textArea.transform, initialValue, 16, textColor, TextAnchor.MiddleLeft);
-            UIFactory.Stretch(inputText.rectTransform);
+            GameObject placeholderGo = UIFactory.CreateUIObject("Placeholder", textArea.transform);
+            RectTransform placeholderRect = placeholderGo.GetComponent<RectTransform>();
+            UIFactory.Stretch(placeholderRect);
+            Text placeholder = placeholderGo.AddComponent<Text>();
+            placeholder.font = UIFactory.DefaultFont;
+            placeholder.fontSize = 15;
+            placeholder.color = new Color(textColor.r, textColor.g, textColor.b, 0.45f);
+            placeholder.alignment = TextAnchor.MiddleLeft;
+            placeholder.fontStyle = FontStyle.Italic;
+            placeholder.text = "Digite o nome do operador";
+            placeholder.supportRichText = false;
+
+            GameObject inputTextGo = UIFactory.CreateUIObject("Text", textArea.transform);
+            RectTransform inputTextRect = inputTextGo.GetComponent<RectTransform>();
+            UIFactory.Stretch(inputTextRect);
+            Text inputText = inputTextGo.AddComponent<Text>();
+            inputText.font = UIFactory.DefaultFont;
+            inputText.fontSize = 16;
+            inputText.color = textColor;
+            inputText.alignment = TextAnchor.MiddleLeft;
+            inputText.supportRichText = false;
+            inputText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            inputText.verticalOverflow = VerticalWrapMode.Overflow;
+            inputText.text = initialValue;
 
             inputField.targetGraphic = rootImage;
             inputField.textComponent = inputText;
             inputField.placeholder = placeholder;
             inputField.lineType = InputField.LineType.SingleLine;
             inputField.text = initialValue;
+            inputField.caretWidth = 2;
+            inputField.customCaretColor = false;
+            inputField.selectionColor = new Color(1f, 1f, 1f, 0.2f);
+            TryAssignInputFieldViewport(inputField, textAreaRect);
             return inputField;
+        }
+
+        private static void TryAssignInputFieldViewport(InputField inputField, RectTransform viewport)
+        {
+            if (inputField == null || viewport == null)
+            {
+                return;
+            }
+
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            PropertyInfo property = typeof(InputField).GetProperty("textViewport", flags);
+            if (property != null && property.CanWrite)
+            {
+                property.SetValue(inputField, viewport, null);
+                return;
+            }
+
+            FieldInfo field = typeof(InputField).GetField("m_TextViewport", flags);
+            if (field != null)
+            {
+                field.SetValue(inputField, viewport);
+            }
         }
 
         private void OnOperatorNameEdited(string value)

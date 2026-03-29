@@ -98,6 +98,10 @@ namespace Desalgoritmizacao.World
         private Vector3 savedStationPlayerPosition;
         private Quaternion savedStationPlayerRotation = Quaternion.identity;
         private Quaternion savedStationCameraLocalRotation = Quaternion.identity;
+        private float stationLookYawOffset;
+        private float stationLookPitchOffset;
+        private float stationBasePlayerYaw;
+        private Quaternion stationBaseCameraLocalRotation = Quaternion.identity;
         private bool lastCursorVisible;
         private CursorLockMode lastCursorLockMode = CursorLockMode.None;
         private bool cursorStateInitialized;
@@ -160,7 +164,6 @@ namespace Desalgoritmizacao.World
             printerConfig = config != null ? config.printerQuickTimeConfig : null;
 
             ConfigurePhysics();
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
             CacheSceneReferences();
             CreateOverlayCanvas();
             BindBridge();
@@ -464,14 +467,7 @@ namespace Desalgoritmizacao.World
         private void UpdatePcDock()
         {
             bool isUsingTemporaryLook = stationAllowsTemporaryLook && stationLookModifierAction != null && stationLookModifierAction.IsPressed();
-            if (isUsingTemporaryLook)
-            {
-                ApplyDockLook(config != null ? config.stationLookSensitivity : 0.08f);
-            }
-            else
-            {
-                MaintainDockAlignment();
-            }
+            UpdateDockLook(isUsingTemporaryLook);
 
             Vector2 moveValue = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;
             if (Mathf.Abs(moveValue.x) > 0.2f || moveValue.y < -0.2f)
@@ -482,6 +478,8 @@ namespace Desalgoritmizacao.World
 
         private void UpdatePrinterDock()
         {
+            MaintainDockAlignment();
+
             if (isPrinterRunning)
             {
                 UpdatePrinterQuickTime();
@@ -513,20 +511,50 @@ namespace Desalgoritmizacao.World
             }
         }
 
-        private void ApplyDockLook(float sensitivity)
+        private void UpdateDockLook(bool isUsingTemporaryLook)
         {
-            Vector2 lookValue = lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;
-            if (lookValue.sqrMagnitude <= 0.0001f)
+            float yawSpeed = config != null ? config.stationLookSensitivity : 0.08f;
+            float pitchSpeed = yawSpeed;
+
+            if (isUsingTemporaryLook)
+            {
+                Vector2 lookValue = lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;
+                stationLookYawOffset += lookValue.x * yawSpeed;
+                stationLookPitchOffset -= lookValue.y * pitchSpeed;
+            }
+            else
+            {
+                float returnSpeed = Mathf.Max(90f, yawSpeed * 180f);
+                stationLookYawOffset = Mathf.MoveTowards(stationLookYawOffset, 0f, returnSpeed * Time.unscaledDeltaTime);
+                stationLookPitchOffset = Mathf.MoveTowards(stationLookPitchOffset, 0f, returnSpeed * Time.unscaledDeltaTime);
+            }
+
+            stationLookYawOffset = Mathf.Clamp(stationLookYawOffset, -55f, 55f);
+            float minPitch = config != null ? config.minimumPitch : -70f;
+            float maxPitch = config != null ? config.maximumPitch : 72f;
+            float basePitch = NormalizeAngle(stationBaseCameraLocalRotation.eulerAngles.x);
+            stationLookPitchOffset = Mathf.Clamp(basePitch + stationLookPitchOffset, minPitch, maxPitch) - basePitch;
+
+            ApplyDockAnchorPose();
+        }
+
+        private void ApplyDockAnchorPose()
+        {
+            if (currentStationAnchor == null || targetCamera == null || playerBody == null)
             {
                 return;
             }
 
-            bodyYaw += lookValue.x * sensitivity;
-            cameraPitch = Mathf.Clamp(cameraPitch - (lookValue.y * sensitivity), config != null ? config.minimumPitch : -70f, config != null ? config.maximumPitch : 72f);
-            Quaternion targetRotation = Quaternion.Euler(0f, bodyYaw, 0f);
-            playerBody.MoveRotation(targetRotation);
-            transform.rotation = targetRotation;
-            targetCamera.transform.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
+            Quaternion playerRotation = Quaternion.Euler(0f, stationBasePlayerYaw + stationLookYawOffset, 0f);
+            Vector3 playerPosition = currentStationAnchor.position - (playerRotation * targetCamera.transform.localPosition);
+            playerBody.position = playerPosition;
+            playerBody.rotation = playerRotation;
+            transform.SetPositionAndRotation(playerPosition, playerRotation);
+            targetCamera.transform.localRotation = stationBaseCameraLocalRotation * Quaternion.Euler(stationLookPitchOffset, 0f, 0f);
+            Physics.SyncTransforms();
+
+            bodyYaw = transform.eulerAngles.y;
+            cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
         }
 
         private void DockAtStation(StationType stationType, Collider stationTrigger, Transform stationAnchor, bool allowUiInteraction, bool allowTemporaryLook)
@@ -550,6 +578,10 @@ namespace Desalgoritmizacao.World
             stationAllowsTemporaryLook = allowTemporaryLook;
             desiredMovement = Vector3.zero;
             MatchCameraToAnchor(stationAnchor);
+            stationLookYawOffset = 0f;
+            stationLookPitchOffset = 0f;
+            stationBasePlayerYaw = transform.eulerAngles.y;
+            stationBaseCameraLocalRotation = targetCamera.transform.localRotation;
             bodyYaw = transform.eulerAngles.y;
             cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
         }
@@ -572,6 +604,8 @@ namespace Desalgoritmizacao.World
             currentStationAnchor = null;
             stationAllowsUiInteraction = false;
             stationAllowsTemporaryLook = false;
+            stationLookYawOffset = 0f;
+            stationLookPitchOffset = 0f;
             bodyYaw = transform.eulerAngles.y;
             cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
             RefreshPrinterUi();
@@ -623,14 +657,9 @@ namespace Desalgoritmizacao.World
 
         private void MaintainDockAlignment()
         {
-            if (currentStationAnchor == null)
-            {
-                return;
-            }
-
-            MatchCameraToAnchor(currentStationAnchor);
-            bodyYaw = transform.eulerAngles.y;
-            cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
+            stationLookYawOffset = 0f;
+            stationLookPitchOffset = 0f;
+            ApplyDockAnchorPose();
         }
 
         private void PushPlayerOutOfTrigger(Collider trigger)
@@ -882,7 +911,7 @@ namespace Desalgoritmizacao.World
 
         private void UpdateCursorAndUiState()
         {
-            if (currentStation != StationType.None || isPrinterPending || isPrinterRunning)
+            if (IsUsingGameplayMechanic())
             {
                 isAtendimentoRequested = false;
             }
@@ -918,15 +947,10 @@ namespace Desalgoritmizacao.World
             {
                 Cursor.visible = forceVisibleCursor;
                 lastCursorVisible = forceVisibleCursor;
-                if (forceVisibleCursor)
-                {
-                    Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-                }
             }
 
             if (!cursorStateInitialized)
             {
-                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
                 cursorStateInitialized = true;
             }
         }
@@ -1083,24 +1107,13 @@ namespace Desalgoritmizacao.World
 
         private void UpdateAtendimentoScheduling()
         {
-            if (!gameplayStarted)
-            {
-                isAtendimentoRequested = false;
-                return;
-            }
+            bool canRequestAtendimento = gameplayStarted &&
+                                         !IsUsingGameplayMechanic() &&
+                                         app != null &&
+                                         app.IsDashboardScreen &&
+                                         IsInFreeRoamExploration();
 
-            if (currentStation != StationType.None || isPrinterPending || isPrinterRunning || isExitPromptVisible || app == null || !app.IsDashboardScreen)
-            {
-                if (isAtendimentoRequested)
-                {
-                    isAtendimentoRequested = false;
-                    ScheduleNextAtendimento();
-                }
-
-                return;
-            }
-
-            if (!IsInFreeRoamExploration())
+            if (!canRequestAtendimento)
             {
                 if (isAtendimentoRequested)
                 {

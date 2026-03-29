@@ -11,8 +11,8 @@ namespace Desalgoritmizacao.Editor
     {
         private const string MenuPath = "Desalgoritmizacao/Guias de Prefab/Mostrar guias de layout";
         private const string PreferenceKey = "Desalgoritmizacao.PrefabGuide.Enabled";
-        private static readonly GUIStyle LabelStyle;
-        private static readonly GUIStyle LegendStyle;
+        private static GUIStyle labelStyle;
+        private static GUIStyle legendStyle;
         private static readonly Color FillDefault = new Color(0.45f, 0.55f, 0.68f, 0.08f);
         private static readonly Color FillPanel = new Color(0.25f, 0.6f, 1f, 0.10f);
         private static readonly Color FillScroll = new Color(1f, 0.6f, 0.1f, 0.10f);
@@ -22,24 +22,48 @@ namespace Desalgoritmizacao.Editor
 
         static DesalgoritmizacaoPrefabGuide()
         {
-            LabelStyle = new GUIStyle(EditorStyles.miniBoldLabel)
-            {
-                alignment = TextAnchor.UpperLeft,
-                richText = true,
-                padding = new RectOffset(5, 5, 3, 3),
-                normal = { textColor = Color.white }
-            };
-
-            LegendStyle = new GUIStyle(EditorStyles.helpBox)
-            {
-                richText = true,
-                fontSize = 11,
-                padding = new RectOffset(8, 8, 8, 8)
-            };
-
             SceneView.duringSceneGui -= OnSceneGui;
             SceneView.duringSceneGui += OnSceneGui;
             EditorApplication.delayCall += RefreshMenuCheck;
+        }
+
+
+        private static bool EnsureStyles()
+        {
+            if (labelStyle == null)
+            {
+                GUIStyle miniBold = EditorStyles.miniBoldLabel;
+                if (miniBold == null)
+                {
+                    return false;
+                }
+
+                labelStyle = new GUIStyle(miniBold)
+                {
+                    alignment = TextAnchor.UpperLeft,
+                    richText = true,
+                    padding = new RectOffset(5, 5, 3, 3)
+                };
+                labelStyle.normal.textColor = Color.white;
+            }
+
+            if (legendStyle == null)
+            {
+                GUIStyle helpBox = EditorStyles.helpBox;
+                if (helpBox == null)
+                {
+                    return false;
+                }
+
+                legendStyle = new GUIStyle(helpBox)
+                {
+                    richText = true,
+                    fontSize = 11,
+                    padding = new RectOffset(8, 8, 8, 8)
+                };
+            }
+
+            return true;
         }
 
         private static bool Enabled
@@ -73,7 +97,7 @@ namespace Desalgoritmizacao.Editor
 
         private static void OnSceneGui(SceneView sceneView)
         {
-            if (!Enabled)
+            if (!Enabled || !EnsureStyles())
             {
                 return;
             }
@@ -122,7 +146,7 @@ namespace Desalgoritmizacao.Editor
                     if (guiRect.width >= 80f && guiRect.height >= 18f)
                     {
                         string label = BuildLabel(rectTransform);
-                        GUI.Label(new Rect(guiRect.x + 2f, guiRect.y + 2f, guiRect.width - 4f, 22f), label, LabelStyle);
+                        GUI.Label(new Rect(guiRect.x + 2f, guiRect.y + 2f, guiRect.width - 4f, 22f), label, labelStyle);
                     }
                 }
             }
@@ -139,7 +163,7 @@ namespace Desalgoritmizacao.Editor
                           fileName + " · " + rectCount + " áreas\n" +
                           "Roxo = títulos | Azul = painéis | Laranja = rolagem | Verde = métricas\n" +
                           "Menu: Desalgoritmizacao > Guias de Prefab > Mostrar guias de layout";
-            GUI.Label(new Rect(12f, 12f, 360f, 80f), text, LegendStyle);
+            GUI.Label(new Rect(12f, 12f, 360f, 80f), text, legendStyle);
         }
 
         private static bool TryGetGuiRect(RectTransform rectTransform, out Rect guiRect)
