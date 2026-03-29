@@ -1196,7 +1196,7 @@ namespace Desalgoritmizacao.World
 
             for (int i = 0; i < printerPreviewIcons.Count; i++)
             {
-                int sequenceIndex = activePrinterRun.currentIndex + i;
+                int sequenceIndex = activePrinterRun.currentIndex + i + 1;
                 if (sequenceIndex < activePrinterRun.sequence.Count)
                 {
                     printerPreviewIcons[i].texture = printerConfig.ResolveTexture(activePrinterRun.sequence[sequenceIndex]);
