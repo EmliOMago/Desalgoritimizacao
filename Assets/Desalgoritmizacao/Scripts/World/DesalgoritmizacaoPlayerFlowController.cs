@@ -112,6 +112,8 @@ namespace Desalgoritmizacao.World
         private bool lastCursorVisible;
         private CursorLockMode lastCursorLockMode = CursorLockMode.None;
         private bool cursorStateInitialized;
+        private Texture2D operatorCursorTexture;
+        private bool isOperatorCursorApplied;
 
         public string CurrentStatusMessage
         {
@@ -173,6 +175,7 @@ namespace Desalgoritmizacao.World
             ConfigurePhysics();
             CacheSceneReferences();
             CreateOverlayCanvas();
+            LoadOperatorCursorTexture();
             BindBridge();
             DisableLegacyCameraLook();
             DisableUnexpectedCursorComponents();
@@ -189,6 +192,7 @@ namespace Desalgoritmizacao.World
             DesalgoritmizacaoGameplayBridge.RegisterAndReturnToCentralRequested = null;
 
             runtimeInputActions?.Disable();
+            ClearOperatorCursor();
             if (overlayCanvas != null)
             {
                 Destroy(overlayCanvas.gameObject);
@@ -200,6 +204,7 @@ namespace Desalgoritmizacao.World
             app = app != null ? app : UnityEngine.Object.FindFirstObjectByType<DesalgoritmizacaoApp>();
             UpdateGameplayStartedFlag();
             UpdateCursorAndUiState();
+            RefreshStationTriggerAvailability();
             UpdateTopBanner();
             UpdateExitPrompt();
             UpdateAtendimentoScheduling();
@@ -260,7 +265,7 @@ namespace Desalgoritmizacao.World
 
             if (other == triggerPc)
             {
-                if (!isAtendimentoRequested && !isExitPromptVisible && currentStation == StationType.None)
+                if (!isPrinterPending && !isPrinterRunning && !isAtendimentoRequested && !isExitPromptVisible && currentStation == StationType.None)
                 {
                     DockAtStation(StationType.Pc, triggerPc, localCamPc, true, true);
                 }
@@ -317,6 +322,8 @@ namespace Desalgoritmizacao.World
             {
                 triggerImpressora.enabled = false;
             }
+
+            RefreshStationTriggerAvailability();
         }
 
         private void DisableLegacyCameraLook()
@@ -360,6 +367,123 @@ namespace Desalgoritmizacao.World
 #endif
 
                 behaviour.enabled = false;
+            }
+        }
+
+        private void LoadOperatorCursorTexture()
+        {
+            Texture2D sourceTexture = Resources.Load<Texture2D>("Desalgoritmizacao/Visuals/arrow-cursor");
+            if (sourceTexture == null)
+            {
+                operatorCursorTexture = null;
+                return;
+            }
+
+            try
+            {
+                operatorCursorTexture = BuildCursorTexture(sourceTexture);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("Não foi possível preparar o cursor do operador: " + exception.Message);
+                operatorCursorTexture = null;
+            }
+        }
+
+        private static Texture2D BuildCursorTexture(Texture2D sourceTexture)
+        {
+            Color32[] pixels = sourceTexture.GetPixels32();
+            int width = sourceTexture.width;
+            int height = sourceTexture.height;
+            int minX = width;
+            int minY = height;
+            int maxX = -1;
+            int maxY = -1;
+
+            for (int y = 0; y < height; y++)
+            {
+                int rowOffset = y * width;
+                for (int x = 0; x < width; x++)
+                {
+                    if (pixels[rowOffset + x].a <= 8)
+                    {
+                        continue;
+                    }
+
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
+                    if (x > maxX) maxX = x;
+                    if (y > maxY) maxY = y;
+                }
+            }
+
+            if (maxX < minX || maxY < minY)
+            {
+                Texture2D fallback = new Texture2D(sourceTexture.width, sourceTexture.height, TextureFormat.RGBA32, false, false);
+                fallback.SetPixels32(pixels);
+                fallback.wrapMode = TextureWrapMode.Clamp;
+                fallback.filterMode = FilterMode.Point;
+                fallback.alphaIsTransparency = true;
+                fallback.Apply(false, false);
+                return fallback;
+            }
+
+            int trimmedWidth = maxX - minX + 1;
+            int trimmedHeight = maxY - minY + 1;
+            Color32[] trimmedPixels = new Color32[trimmedWidth * trimmedHeight];
+            for (int y = 0; y < trimmedHeight; y++)
+            {
+                Array.Copy(pixels, (minY + y) * width + minX, trimmedPixels, y * trimmedWidth, trimmedWidth);
+            }
+
+            Texture2D trimmedTexture = new Texture2D(trimmedWidth, trimmedHeight, TextureFormat.RGBA32, false, false);
+            trimmedTexture.SetPixels32(trimmedPixels);
+            trimmedTexture.wrapMode = TextureWrapMode.Clamp;
+            trimmedTexture.filterMode = FilterMode.Point;
+            trimmedTexture.alphaIsTransparency = true;
+            trimmedTexture.Apply(false, false);
+            return trimmedTexture;
+        }
+
+        private void ApplyOperatorCursor(bool useOperatorCursor)
+        {
+            if (useOperatorCursor)
+            {
+                if (!isOperatorCursorApplied && operatorCursorTexture != null)
+                {
+                    Vector2 hotspot = new Vector2(2f, 0f);
+                    Cursor.SetCursor(operatorCursorTexture, hotspot, CursorMode.Auto);
+                    isOperatorCursorApplied = true;
+                }
+
+                return;
+            }
+
+            ClearOperatorCursor();
+        }
+
+        private void ClearOperatorCursor()
+        {
+            if (!isOperatorCursorApplied)
+            {
+                return;
+            }
+
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            isOperatorCursorApplied = false;
+        }
+
+        private void RefreshStationTriggerAvailability()
+        {
+            bool printerFlowBlockingPc = isPrinterPending || isPrinterRunning;
+            if (triggerPc != null)
+            {
+                triggerPc.enabled = !printerFlowBlockingPc;
+            }
+
+            if (triggerImpressora != null)
+            {
+                triggerImpressora.enabled = printerFlowBlockingPc;
             }
         }
 
@@ -850,10 +974,7 @@ namespace Desalgoritmizacao.World
             printerRestartAt = 0f;
             activePrinterRun = null;
             isPrinterRunning = false;
-            if (triggerImpressora != null)
-            {
-                triggerImpressora.enabled = true;
-            }
+            RefreshStationTriggerAvailability();
 
             if (currentStation == StationType.Pc)
             {
@@ -973,6 +1094,8 @@ namespace Desalgoritmizacao.World
                 triggerImpressora.enabled = false;
             }
 
+            RefreshStationTriggerAvailability();
+
             ShowTemporaryBanner(printerConfig != null ? printerConfig.successMessage : "Registro impresso. Retorne ao terminal.");
             if (currentStation == StationType.Impressora)
             {
@@ -1061,6 +1184,7 @@ namespace Desalgoritmizacao.World
                 DisableUnexpectedCursorComponents();
             }
 
+            ApplyOperatorCursor(allowMenuCursor);
             ApplyCursorState();
 
             Canvas mainCanvas = app != null ? app.MainCanvas : null;
