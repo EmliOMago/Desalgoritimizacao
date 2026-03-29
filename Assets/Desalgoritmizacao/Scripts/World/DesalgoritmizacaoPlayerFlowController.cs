@@ -1320,9 +1320,9 @@ namespace Desalgoritmizacao.World
             modalPanel = modalGo.AddComponent<Image>();
             modalPanel.color = new Color(0.06f, 0.08f, 0.12f, 0.97f);
             modalTitleText = CreateText("Title", modalRect, font, 30, FontStyle.Bold, TextAnchor.UpperLeft, Color.white);
-            Stretch(modalTitleText.rectTransform, new Vector2(24f, -28f), new Vector2(-24f, -168f));
+            Stretch(modalTitleText.rectTransform, new Vector2(24f, -24f), new Vector2(-24f, -196f));
             modalBodyText = CreateText("Body", modalRect, font, 20, FontStyle.Normal, TextAnchor.UpperLeft, new Color(0.86f, 0.9f, 0.97f, 1f));
-            Stretch(modalBodyText.rectTransform, new Vector2(24f, -92f), new Vector2(-24f, -92f));
+            Stretch(modalBodyText.rectTransform, new Vector2(24f, -86f), new Vector2(-24f, -126f));
             modalConfirmButton = CreateButton(modalRect, font, "Sair", new Vector2(24f, 24f), new Vector2(236f, 72f), new Color(0.84f, 0.26f, 0.26f, 1f), Color.white);
             modalCancelButton = CreateButton(modalRect, font, "Continuar", new Vector2(280f, 24f), new Vector2(236f, 72f), new Color(0.22f, 0.52f, 0.78f, 1f), Color.white);
             modalConfirmButton.onClick.AddListener(ConfirmExit);
@@ -1417,6 +1417,7 @@ namespace Desalgoritmizacao.World
 
         private void ConfirmExit()
         {
+            Desalgoritmizacao.Runtime.DesalgoritmizacaoPersistentProgress.ClearOperatorName();
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
 #else

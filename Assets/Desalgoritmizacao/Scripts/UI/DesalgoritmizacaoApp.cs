@@ -7,6 +7,7 @@ using Desalgoritmizacao.World;
 using Desalgoritmizacao.Scene;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Desalgoritmizacao.UI
@@ -52,6 +53,8 @@ namespace Desalgoritmizacao.UI
         private Button headerExitButton;
         private Transform currentScreenRoot;
         private InputField operatorNameInput;
+        private Button initialMenuStartButton;
+        private Text operatorRequirementText;
 
         private AppThemeConfig theme;
         private readonly List<CandidateCaseDefinition> caseTemplates = new List<CandidateCaseDefinition>();
@@ -522,14 +525,17 @@ namespace Desalgoritmizacao.UI
 
             Image operatorPanel = UIFactory.CreatePanel(body.transform, theme != null ? theme.surfaceColor : new Color(0.11f, 0.13f, 0.18f, 1f), "OperatorPanel");
             UIFactory.AddVerticalLayout(operatorPanel.gameObject, 8, new RectOffset(16, 16, 12, 12), false);
-            UIFactory.AddLayoutElement(operatorPanel.gameObject, preferredHeight: 92f, minHeight: 92f);
+            UIFactory.AddLayoutElement(operatorPanel.gameObject, preferredHeight: 124f, minHeight: 124f);
             Text operatorLabel = UIFactory.CreateText(operatorPanel.transform, "Operador identificado", 15, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIFactory.AddLayoutElement(operatorLabel.gameObject, preferredHeight: 18f);
             operatorNameInput = CreateInputField(operatorPanel.transform, currentOperatorName, theme != null ? theme.textPrimaryColor : Color.white, theme != null ? theme.backgroundColor : Color.black, theme != null ? theme.elevatedSurfaceColor : Color.gray);
+            operatorNameInput.onValueChanged.AddListener(OnOperatorNameChanged);
             operatorNameInput.onEndEdit.AddListener(OnOperatorNameEdited);
             UIFactory.AddLayoutElement(operatorNameInput.gameObject, preferredHeight: 34f, minHeight: 34f);
             Text operatorHint = UIFactory.CreateText(operatorPanel.transform, "O nome será usado no painel de registros de ciclos.", 13, theme != null ? theme.textSecondaryColor : Color.white, TextAnchor.MiddleLeft, FontStyle.Italic);
             UIFactory.AddLayoutElement(operatorHint.gameObject, preferredHeight: 16f);
+            operatorRequirementText = UIFactory.CreateText(operatorPanel.transform, "Digite um novo nome para liberar o início da operação.", 13, theme != null ? theme.warningColor : new Color(1f, 0.85f, 0.35f, 1f), TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIFactory.AddLayoutElement(operatorRequirementText.gameObject, preferredHeight: 18f, minHeight: 18f);
 
             Image rulesPanel = UIFactory.CreatePanel(body.transform, theme != null ? theme.elevatedSurfaceColor : new Color(0.15f, 0.18f, 0.24f, 1f), "RulesPanel");
             UIFactory.AddVerticalLayout(rulesPanel.gameObject, 4, new RectOffset(16, 16, 10, 10), false);
@@ -543,11 +549,16 @@ namespace Desalgoritmizacao.UI
             UIFactory.AddHorizontalLayout(buttonsRow, 20, new RectOffset(0, 0, 0, 0), true);
             UIFactory.AddLayoutElement(buttonsRow, preferredHeight: 78f, minHeight: 78f);
 
-            Button startButton = UIFactory.CreateButton(buttonsRow.transform, theme != null ? theme.startButtonLabel : "Iniciar", theme != null ? theme.systemAccentColor : Color.cyan, theme != null ? theme.textPrimaryColor : Color.white, 22);
-            UIFactory.AddLayoutElement(startButton.gameObject, preferredHeight: 78f, preferredWidth: 340f);
-            startButton.onClick.AddListener(() =>
+            initialMenuStartButton = UIFactory.CreateButton(buttonsRow.transform, theme != null ? theme.startButtonLabel : "Iniciar", theme != null ? theme.systemAccentColor : Color.cyan, theme != null ? theme.textPrimaryColor : Color.white, 22);
+            UIFactory.AddLayoutElement(initialMenuStartButton.gameObject, preferredHeight: 78f, preferredWidth: 340f);
+            initialMenuStartButton.onClick.AddListener(() =>
             {
-                CommitOperatorNameFromInput();
+                if (!CommitOperatorNameFromInput())
+                {
+                    UpdateOperatorEntryState();
+                    return;
+                }
+
                 PrepareNewCycle();
                 if (initialMenuCanvas != null)
                 {
@@ -562,6 +573,7 @@ namespace Desalgoritmizacao.UI
             quitButton.onClick.AddListener(QuitGame);
 
             initialMenuCanvas.enabled = true;
+            UpdateOperatorEntryState();
         }
 
         private InputField CreateInputField(Transform parent, string initialValue, Color textColor, Color backgroundColor, Color frameColor)
@@ -642,24 +654,75 @@ namespace Desalgoritmizacao.UI
             }
         }
 
-        private void OnOperatorNameEdited(string value)
+        private void OnOperatorNameChanged(string value)
         {
-            string fallback = theme != null ? theme.defaultOperatorName : "Operador";
-            currentOperatorName = string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
-            DesalgoritmizacaoPersistentProgress.SaveOperatorName(currentOperatorName, fallback);
-            RefreshRankingCanvas();
+            currentOperatorName = NormalizeOperatorName(value);
+            UpdateOperatorEntryState();
         }
 
-        private void CommitOperatorNameFromInput()
+        private void OnOperatorNameEdited(string value)
         {
-            string fallback = theme != null ? theme.defaultOperatorName : "Operador";
+            currentOperatorName = NormalizeOperatorName(value);
+            UpdateOperatorEntryState();
+        }
+
+        private bool CommitOperatorNameFromInput()
+        {
             string value = operatorNameInput != null ? operatorNameInput.text : currentOperatorName;
-            currentOperatorName = string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            currentOperatorName = NormalizeOperatorName(value);
+            UpdateOperatorEntryState();
+            if (string.IsNullOrWhiteSpace(currentOperatorName))
+            {
+                return false;
+            }
+
             if (operatorNameInput != null)
             {
-                operatorNameInput.text = currentOperatorName;
+                operatorNameInput.SetTextWithoutNotify(currentOperatorName);
+                operatorNameInput.DeactivateInputField();
             }
-            DesalgoritmizacaoPersistentProgress.SaveOperatorName(currentOperatorName, fallback);
+
+            DesalgoritmizacaoPersistentProgress.SaveOperatorName(currentOperatorName, theme != null ? theme.defaultOperatorName : "Operador");
+            RefreshRankingCanvas();
+            return true;
+        }
+
+        private static string NormalizeOperatorName(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        }
+
+        private void ResetOperatorEntryForMenu()
+        {
+            currentOperatorName = string.Empty;
+            if (operatorNameInput != null)
+            {
+                operatorNameInput.SetTextWithoutNotify(string.Empty);
+                operatorNameInput.DeactivateInputField();
+            }
+
+            EventSystem eventSystem = EventSystem.current;
+            if (eventSystem != null)
+            {
+                eventSystem.SetSelectedGameObject(null);
+            }
+
+            DesalgoritmizacaoPersistentProgress.ClearOperatorName();
+            UpdateOperatorEntryState();
+        }
+
+        private void UpdateOperatorEntryState()
+        {
+            bool hasValidName = !string.IsNullOrWhiteSpace(currentOperatorName);
+            if (initialMenuStartButton != null)
+            {
+                initialMenuStartButton.gameObject.SetActive(hasValidName);
+            }
+
+            if (operatorRequirementText != null)
+            {
+                operatorRequirementText.gameObject.SetActive(!hasValidName);
+            }
         }
 
         private void BuildRankingCanvas()
@@ -1220,6 +1283,7 @@ namespace Desalgoritmizacao.UI
             if (initialMenuCanvas != null)
             {
                 initialMenuCanvas.enabled = true;
+            UpdateOperatorEntryState();
             }
 
             if (operatorNameInput != null)

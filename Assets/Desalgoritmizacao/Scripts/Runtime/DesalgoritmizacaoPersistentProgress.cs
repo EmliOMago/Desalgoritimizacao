@@ -42,19 +42,20 @@ namespace Desalgoritmizacao.Runtime
         public static string LoadOperatorName(string fallbackName)
         {
             PersistentProgressData data = LoadData();
-            if (string.IsNullOrWhiteSpace(data.operatorName))
-            {
-                data.operatorName = fallbackName;
-                SaveData(data);
-            }
-
-            return string.IsNullOrWhiteSpace(data.operatorName) ? fallbackName : data.operatorName;
+            return string.IsNullOrWhiteSpace(data.operatorName) ? string.Empty : data.operatorName.Trim();
         }
 
         public static void SaveOperatorName(string operatorName, string fallbackName)
         {
             PersistentProgressData data = LoadData();
-            data.operatorName = string.IsNullOrWhiteSpace(operatorName) ? fallbackName : operatorName.Trim();
+            data.operatorName = string.IsNullOrWhiteSpace(operatorName) ? string.Empty : operatorName.Trim();
+            SaveData(data);
+        }
+
+        public static void ClearOperatorName()
+        {
+            PersistentProgressData data = LoadData();
+            data.operatorName = string.Empty;
             SaveData(data);
         }
 
