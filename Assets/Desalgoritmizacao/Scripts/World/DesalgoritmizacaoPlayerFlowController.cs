@@ -98,6 +98,9 @@ namespace Desalgoritmizacao.World
         private Vector3 savedStationPlayerPosition;
         private Quaternion savedStationPlayerRotation = Quaternion.identity;
         private Quaternion savedStationCameraLocalRotation = Quaternion.identity;
+        private bool lastCursorVisible;
+        private CursorLockMode lastCursorLockMode = CursorLockMode.None;
+        private bool cursorStateInitialized;
 
         public string CurrentStatusMessage
         {
@@ -398,7 +401,7 @@ namespace Desalgoritmizacao.World
 
         private bool CanDriveFreeRoam()
         {
-            return IsInFreeRoamExploration() && !isAtendimentoRequested;
+            return IsInFreeRoamExploration();
         }
 
         private bool IsUsingGameplayMechanic()
@@ -903,10 +906,29 @@ namespace Desalgoritmizacao.World
         {
             bool allowMenuCursor = gameplayStarted && currentStation == StationType.Pc && stationAllowsUiInteraction && !isAtendimentoRequested && !isExitPromptVisible;
             bool forceVisibleCursor = isExitPromptVisible || (!gameplayStarted && app != null && app.IsInInitialMenu) || allowMenuCursor;
+            CursorLockMode desiredLockMode = forceVisibleCursor ? CursorLockMode.None : CursorLockMode.Locked;
 
-            Cursor.lockState = forceVisibleCursor ? CursorLockMode.None : CursorLockMode.Locked;
-            Cursor.visible = forceVisibleCursor;
-            Cursor.SetCursor(null, Vector2.zero, forceVisibleCursor ? CursorMode.ForceSoftware : CursorMode.Auto);
+            if (!cursorStateInitialized || lastCursorLockMode != desiredLockMode)
+            {
+                Cursor.lockState = desiredLockMode;
+                lastCursorLockMode = desiredLockMode;
+            }
+
+            if (!cursorStateInitialized || lastCursorVisible != forceVisibleCursor)
+            {
+                Cursor.visible = forceVisibleCursor;
+                lastCursorVisible = forceVisibleCursor;
+                if (forceVisibleCursor)
+                {
+                    Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                }
+            }
+
+            if (!cursorStateInitialized)
+            {
+                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                cursorStateInitialized = true;
+            }
         }
 
         private void CreateOverlayCanvas()
