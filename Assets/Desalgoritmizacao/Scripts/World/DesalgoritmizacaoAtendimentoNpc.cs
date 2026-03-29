@@ -29,6 +29,7 @@ namespace Desalgoritmizacao.World
         private Action<DesalgoritmizacaoAtendimentoNpc> exitedCallback;
         private Animator visualAnimator;
         private Transform visualRoot;
+        private Avatar visualAvatar;
         private NpcState currentState;
         private float verticalVelocity;
         private bool hasRaisedDeskCallback;
@@ -298,15 +299,16 @@ namespace Desalgoritmizacao.World
                 return;
             }
 
-            visualAnimator = visualInstance.GetComponent<Animator>();
-            if (visualAnimator == null)
-            {
-                visualAnimator = visualInstance.GetComponentInChildren<Animator>(true);
-            }
-
+            visualAnimator = ResolveBestAnimator(visualInstance);
             if (visualAnimator == null)
             {
                 visualAnimator = visualInstance.AddComponent<Animator>();
+            }
+
+            visualAvatar = ResolveAvatar(visualInstance, visualAnimator);
+            if (visualAvatar != null)
+            {
+                visualAnimator.avatar = visualAvatar;
             }
 
             RuntimeAnimatorController starterController = Resources.Load<RuntimeAnimatorController>(StarterControllerResourcePath);
@@ -315,9 +317,72 @@ namespace Desalgoritmizacao.World
                 visualAnimator.runtimeAnimatorController = starterController;
             }
 
+            DesalgoritmizacaoNpcAnimationEvents eventReceiver = visualAnimator.GetComponent<DesalgoritmizacaoNpcAnimationEvents>();
+            if (eventReceiver == null)
+            {
+                eventReceiver = visualAnimator.gameObject.AddComponent<DesalgoritmizacaoNpcAnimationEvents>();
+            }
+
+            DisableExtraAnimators(visualInstance, visualAnimator);
             visualAnimator.applyRootMotion = false;
-            visualAnimator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            visualAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            visualAnimator.Rebind();
+            visualAnimator.Update(0f);
             ApplyAnimatorMotion(0f);
+        }
+
+        private static Animator ResolveBestAnimator(GameObject visualInstance)
+        {
+            Animator[] animators = visualInstance.GetComponentsInChildren<Animator>(true);
+            Animator fallbackAnimator = visualInstance.GetComponent<Animator>();
+            if (fallbackAnimator == null && animators.Length > 0)
+            {
+                fallbackAnimator = animators[0];
+            }
+
+            for (int i = 0; i < animators.Length; i++)
+            {
+                Animator candidate = animators[i];
+                if (candidate != null && candidate.avatar != null && candidate.avatar.isValid)
+                {
+                    return candidate;
+                }
+            }
+
+            return fallbackAnimator;
+        }
+
+        private static Avatar ResolveAvatar(GameObject visualInstance, Animator preferredAnimator)
+        {
+            if (preferredAnimator != null && preferredAnimator.avatar != null && preferredAnimator.avatar.isValid)
+            {
+                return preferredAnimator.avatar;
+            }
+
+            Animator[] animators = visualInstance.GetComponentsInChildren<Animator>(true);
+            for (int i = 0; i < animators.Length; i++)
+            {
+                Animator candidate = animators[i];
+                if (candidate != null && candidate.avatar != null && candidate.avatar.isValid)
+                {
+                    return candidate.avatar;
+                }
+            }
+
+            return null;
+        }
+
+        private static void DisableExtraAnimators(GameObject visualInstance, Animator selectedAnimator)
+        {
+            Animator[] animators = visualInstance.GetComponentsInChildren<Animator>(true);
+            for (int i = 0; i < animators.Length; i++)
+            {
+                Animator candidate = animators[i];
+                if (candidate != null && candidate != selectedAnimator)
+                {
+                    candidate.enabled = false;
+                }
+            }
         }
 
         private void TryAttachPushHelper()
@@ -340,12 +405,28 @@ namespace Desalgoritmizacao.World
                 return;
             }
 
+            if (visualAvatar != null && visualAnimator.avatar != visualAvatar)
+            {
+                visualAnimator.avatar = visualAvatar;
+            }
+
             float normalizedSpeed = worldSpeed > 0.05f ? 1f : 0f;
             visualAnimator.SetBool("Grounded", true);
             visualAnimator.SetBool("Jump", false);
             visualAnimator.SetBool("FreeFall", false);
             visualAnimator.SetFloat("Speed", normalizedSpeed);
             visualAnimator.SetFloat("MotionSpeed", normalizedSpeed);
+        }
+    }
+
+    public sealed class DesalgoritmizacaoNpcAnimationEvents : MonoBehaviour
+    {
+        public void OnFootstep(AnimationEvent animationEvent)
+        {
+        }
+
+        public void OnLand(AnimationEvent animationEvent)
+        {
         }
     }
 }
