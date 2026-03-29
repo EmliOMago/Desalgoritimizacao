@@ -8,7 +8,9 @@ namespace Desalgoritmizacao.World
     public sealed class DesalgoritmizacaoAtendimentoNpc : MonoBehaviour
     {
         private const string StarterControllerResourcePath = "Desalgoritmizacao/NPCs/StarterAssetsThirdPerson";
-        private const float DefaultMoveSpeed = 1.65f;
+        private const float DefaultMoveSpeed = 1.52f;
+        private const float DefaultWalkBlendSpeed = 2.0f;
+        private const float DefaultWalkMotionSpeed = 1.08f;
         private const float DefaultRotationSpeed = 10f;
         private const float DefaultGravity = -18f;
         private const float DefaultStopDistance = 0.10f;
@@ -410,12 +412,14 @@ namespace Desalgoritmizacao.World
                 visualAnimator.avatar = visualAvatar;
             }
 
-            float normalizedSpeed = worldSpeed > 0.05f ? 1f : 0f;
+            bool isMoving = worldSpeed > 0.05f;
+            float blendSpeed = isMoving ? DefaultWalkBlendSpeed : 0f;
+            float motionSpeed = isMoving ? DefaultWalkMotionSpeed : 0f;
             visualAnimator.SetBool("Grounded", true);
             visualAnimator.SetBool("Jump", false);
             visualAnimator.SetBool("FreeFall", false);
-            visualAnimator.SetFloat("Speed", normalizedSpeed);
-            visualAnimator.SetFloat("MotionSpeed", normalizedSpeed);
+            visualAnimator.SetFloat("Speed", blendSpeed);
+            visualAnimator.SetFloat("MotionSpeed", motionSpeed);
         }
     }
 
