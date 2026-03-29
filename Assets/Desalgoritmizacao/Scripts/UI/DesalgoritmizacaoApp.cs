@@ -72,6 +72,8 @@ namespace Desalgoritmizacao.UI
         private string currentOperatorName = "Operador";
         private int currentCycleNumber;
         private bool cycleRecordSaved;
+        private bool lastDashboardWorkflowCanOpen = true;
+        private string lastDashboardWorkflowBlockReason = string.Empty;
 
         private void Awake()
         {
@@ -102,6 +104,11 @@ namespace Desalgoritmizacao.UI
                 float target = theme != null ? theme.recommendedAnalysisSeconds : 45f;
                 analysisTimerText.text = "Tempo de análise: " + elapsed.ToString("0.0") + "s / meta " + target.ToString("0") + "s";
                 analysisTimerText.color = elapsed > target ? theme.warningColor : theme.textSecondaryColor;
+            }
+
+            if (currentScreen == ScreenState.Dashboard)
+            {
+                SyncDashboardWorkflowState();
             }
         }
 
@@ -178,6 +185,28 @@ namespace Desalgoritmizacao.UI
             masterCasePool.AddRange(DesalgoritmizacaoCaseDeckBuilder.BuildExpandedPool(caseTemplates, Mathf.Max(theme.generatedCasePoolSize, theme.casesPerCycle * 6), theme.shuffleSeed));
         }
 
+
+        private void SyncDashboardWorkflowState()
+        {
+            string workflowBlockReason;
+            bool canOpenWorkflow = DesalgoritmizacaoGameplayBridge.CanOpenOperatorWorkflow(out workflowBlockReason);
+            workflowBlockReason = workflowBlockReason ?? string.Empty;
+
+            if (canOpenWorkflow == lastDashboardWorkflowCanOpen && string.Equals(workflowBlockReason, lastDashboardWorkflowBlockReason, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            lastDashboardWorkflowCanOpen = canOpenWorkflow;
+            lastDashboardWorkflowBlockReason = workflowBlockReason;
+            ShowDashboard();
+        }
+
+        private void RememberDashboardWorkflowState(bool canOpenWorkflow, string workflowBlockReason)
+        {
+            lastDashboardWorkflowCanOpen = canOpenWorkflow;
+            lastDashboardWorkflowBlockReason = workflowBlockReason ?? string.Empty;
+        }
 
         private void PrepareNewCycle()
         {
@@ -1227,6 +1256,7 @@ namespace Desalgoritmizacao.UI
             PrepareText("LeftPanel/QueuePanel/QueueTitle", theme.queueTitle, 22, theme.textPrimaryColor, TextAnchor.MiddleLeft, FontStyle.Bold);
             string workflowBlockReason;
             bool canOpenWorkflow = DesalgoritmizacaoGameplayBridge.CanOpenOperatorWorkflow(out workflowBlockReason);
+            RememberDashboardWorkflowState(canOpenWorkflow, workflowBlockReason);
             string queueHint = "Ao zerar qualquer indicador você perde. Ao levar os três a 100 você vence imediatamente.";
             if (!string.IsNullOrWhiteSpace(workflowBlockReason))
             {
@@ -1314,6 +1344,17 @@ namespace Desalgoritmizacao.UI
 
         private void ShowCase(bool resetCaseState)
         {
+            string workflowBlockReason;
+            if (!DesalgoritmizacaoGameplayBridge.CanOpenOperatorWorkflow(out workflowBlockReason))
+            {
+                if (currentScreen != ScreenState.Dashboard)
+                {
+                    ShowDashboard();
+                }
+
+                return;
+            }
+
             SetHeaderExitVisible(false);
             activeCase = session.CurrentCase(cases);
             if (activeCase == null)

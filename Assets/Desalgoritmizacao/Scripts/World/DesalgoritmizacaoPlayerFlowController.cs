@@ -112,9 +112,6 @@ namespace Desalgoritmizacao.World
         private bool lastCursorVisible;
         private CursorLockMode lastCursorLockMode = CursorLockMode.None;
         private bool cursorStateInitialized;
-        private Texture2D operatorCursorTexture;
-        private Vector2 operatorCursorHotspot = Vector2.zero;
-        private bool operatorCursorApplied;
 
         public string CurrentStatusMessage
         {
@@ -172,7 +169,6 @@ namespace Desalgoritmizacao.World
             app = UnityEngine.Object.FindFirstObjectByType<DesalgoritmizacaoApp>();
             config = Resources.Load<DesalgoritmizacaoInteractionConfig>("Desalgoritmizacao/Config/InteractionConfig");
             printerConfig = config != null ? config.printerQuickTimeConfig : null;
-            operatorCursorTexture = CreateCursorTextureFromResource("Desalgoritmizacao/Visuals/arrow-cursor", out operatorCursorHotspot);
 
             ConfigurePhysics();
             CacheSceneReferences();
@@ -193,13 +189,6 @@ namespace Desalgoritmizacao.World
             DesalgoritmizacaoGameplayBridge.RegisterAndReturnToCentralRequested = null;
 
             runtimeInputActions?.Disable();
-            ApplyOperatorCursor(false);
-            if (operatorCursorTexture != null)
-            {
-                Destroy(operatorCursorTexture);
-                operatorCursorTexture = null;
-            }
-
             if (overlayCanvas != null)
             {
                 Destroy(overlayCanvas.gameObject);
@@ -1103,109 +1092,9 @@ namespace Desalgoritmizacao.World
                 lastCursorVisible = forceVisibleCursor;
             }
 
-            ApplyOperatorCursor(allowMenuCursor);
-
             if (!cursorStateInitialized)
             {
                 cursorStateInitialized = true;
-            }
-        }
-
-        private void ApplyOperatorCursor(bool shouldUseOperatorCursor)
-        {
-            if (shouldUseOperatorCursor)
-            {
-                if (!operatorCursorApplied)
-                {
-                    Cursor.SetCursor(operatorCursorTexture, operatorCursorHotspot, CursorMode.Auto);
-                    operatorCursorApplied = true;
-                }
-
-                return;
-            }
-
-            if (operatorCursorApplied)
-            {
-                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-                operatorCursorApplied = false;
-            }
-        }
-
-        private Texture2D CreateCursorTextureFromResource(string resourcePath, out Vector2 hotspot)
-        {
-            hotspot = Vector2.zero;
-            Texture2D sourceTexture = Resources.Load<Texture2D>(resourcePath);
-            if (sourceTexture == null)
-            {
-                Debug.LogWarning("DesalgoritmizacaoPlayerFlowController não encontrou o cursor '" + resourcePath + "'.");
-                return null;
-            }
-
-            RenderTexture temporary = RenderTexture.GetTemporary(sourceTexture.width, sourceTexture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
-            RenderTexture previous = RenderTexture.active;
-            try
-            {
-                Graphics.Blit(sourceTexture, temporary);
-                RenderTexture.active = temporary;
-
-                Texture2D readableTexture = new Texture2D(sourceTexture.width, sourceTexture.height, TextureFormat.RGBA32, false, false);
-                readableTexture.name = sourceTexture.name + "_RuntimeCursorReadable";
-                readableTexture.ReadPixels(new Rect(0f, 0f, sourceTexture.width, sourceTexture.height), 0, 0, false);
-                readableTexture.Apply(false, false);
-
-                Color32[] pixels = readableTexture.GetPixels32();
-                int width = readableTexture.width;
-                int height = readableTexture.height;
-                int minX = width;
-                int minY = height;
-                int maxX = -1;
-                int maxY = -1;
-
-                for (int y = 0; y < height; y++)
-                {
-                    int rowOffset = y * width;
-                    for (int x = 0; x < width; x++)
-                    {
-                        if (pixels[rowOffset + x].a <= 10)
-                        {
-                            continue;
-                        }
-
-                        if (x < minX) minX = x;
-                        if (y < minY) minY = y;
-                        if (x > maxX) maxX = x;
-                        if (y > maxY) maxY = y;
-                    }
-                }
-
-                if (maxX < minX || maxY < minY)
-                {
-                    readableTexture.name = sourceTexture.name + "_RuntimeCursor";
-                    hotspot = Vector2.zero;
-                    return readableTexture;
-                }
-
-                int croppedWidth = maxX - minX + 1;
-                int croppedHeight = maxY - minY + 1;
-                Texture2D cursorTexture = new Texture2D(croppedWidth, croppedHeight, TextureFormat.RGBA32, false, false);
-                cursorTexture.name = sourceTexture.name + "_RuntimeCursor";
-                cursorTexture.SetPixels(readableTexture.GetPixels(minX, minY, croppedWidth, croppedHeight));
-                cursorTexture.Apply(false, false);
-
-                Destroy(readableTexture);
-
-                int tipX = 123;
-                int tipY = 30;
-                hotspot = new Vector2(
-                    Mathf.Clamp(tipX - minX, 0, croppedWidth - 1),
-                    Mathf.Clamp(tipY - minY, 0, croppedHeight - 1));
-
-                return cursorTexture;
-            }
-            finally
-            {
-                RenderTexture.active = previous;
-                RenderTexture.ReleaseTemporary(temporary);
             }
         }
 
