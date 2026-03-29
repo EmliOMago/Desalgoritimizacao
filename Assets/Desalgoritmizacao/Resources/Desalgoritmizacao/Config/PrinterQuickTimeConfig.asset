@@ -24,5 +24,5 @@ MonoBehaviour:
   previewIconCount: 4
   title: Configure a impressora
   subtitle: "Acione as setas na ordem certa para concluir a impress\xE3o."
-  successMessage: Registro impresso. Retorne ao terminal.
+  successMessage: Registro impresso. Retorne ao computador.
   failureMessage: "Falha na impress\xE3o. Configure novamente."
