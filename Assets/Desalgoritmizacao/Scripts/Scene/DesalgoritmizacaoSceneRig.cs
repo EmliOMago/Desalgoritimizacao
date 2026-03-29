@@ -190,6 +190,13 @@ namespace Desalgoritmizacao.Scene
                 return;
             }
 
+            if (Object.FindFirstObjectByType<Desalgoritmizacao.World.DesalgoritmizacaoPlayerFlowController>() != null)
+            {
+                yawOffset = 0f;
+                cameraPivot.localRotation = initialPivotLocalRotation;
+                return;
+            }
+
             if (IsLookHeld())
             {
                 yawOffset += GetMouseDeltaX() * lookSensitivity;

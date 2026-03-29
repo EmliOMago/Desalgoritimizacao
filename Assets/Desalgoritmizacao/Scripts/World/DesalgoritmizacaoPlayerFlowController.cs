@@ -217,6 +217,11 @@ namespace Desalgoritmizacao.World
             UpdateFreeMovement();
         }
 
+        private void LateUpdate()
+        {
+            ApplyCursorState();
+        }
+
         private void FixedUpdate()
         {
             if (desiredMovement.sqrMagnitude <= 0.0001f)
@@ -376,9 +381,20 @@ namespace Desalgoritmizacao.World
             }
         }
 
+        private bool IsInFreeRoamExploration()
+        {
+            return gameplayStarted &&
+                   currentStation == StationType.None &&
+                   !isPrinterPending &&
+                   !isPrinterRunning &&
+                   !isExitPromptVisible &&
+                   app != null &&
+                   app.IsDashboardScreen;
+        }
+
         private bool CanDriveFreeRoam()
         {
-            return gameplayStarted && currentStation == StationType.None && !isPrinterRunning && !isExitPromptVisible;
+            return IsInFreeRoamExploration() && !isAtendimentoRequested;
         }
 
         private bool IsUsingGameplayMechanic()
@@ -511,6 +527,12 @@ namespace Desalgoritmizacao.World
             if (stationAnchor == null || targetCamera == null)
             {
                 return;
+            }
+
+            if (isAtendimentoRequested)
+            {
+                isAtendimentoRequested = false;
+                ScheduleNextAtendimento();
             }
 
             currentStation = stationType;
@@ -823,11 +845,8 @@ namespace Desalgoritmizacao.World
         private void UpdateCursorAndUiState()
         {
             bool allowMenuCursor = gameplayStarted && currentStation == StationType.Pc && stationAllowsUiInteraction && !isAtendimentoRequested && !isExitPromptVisible;
-            bool forceVisibleCursor = isExitPromptVisible || (!gameplayStarted && app != null && app.IsInInitialMenu) || allowMenuCursor;
 
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-            Cursor.visible = forceVisibleCursor;
-            Cursor.lockState = forceVisibleCursor ? CursorLockMode.None : CursorLockMode.Locked;
+            ApplyCursorState();
 
             Canvas mainCanvas = app != null ? app.MainCanvas : null;
             if (mainCanvas != null)
@@ -838,6 +857,16 @@ namespace Desalgoritmizacao.World
                     appRaycaster.enabled = allowMenuCursor;
                 }
             }
+        }
+
+        private void ApplyCursorState()
+        {
+            bool allowMenuCursor = gameplayStarted && currentStation == StationType.Pc && stationAllowsUiInteraction && !isAtendimentoRequested && !isExitPromptVisible;
+            bool forceVisibleCursor = isExitPromptVisible || (!gameplayStarted && app != null && app.IsInInitialMenu) || allowMenuCursor;
+
+            Cursor.lockState = forceVisibleCursor ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = forceVisibleCursor;
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
         }
 
         private void CreateOverlayCanvas()
@@ -922,7 +951,7 @@ namespace Desalgoritmizacao.World
 
         private void UpdateTopBanner()
         {
-            string bannerMessage = isAtendimentoRequested ? "Atendimento solicitado" : string.Empty;
+            string bannerMessage = isAtendimentoRequested && IsInFreeRoamExploration() ? "Atendimento solicitado" : string.Empty;
             if (string.IsNullOrWhiteSpace(bannerMessage) && Time.unscaledTime < temporaryBannerUntil)
             {
                 bannerMessage = temporaryBannerMessage;
@@ -992,13 +1021,23 @@ namespace Desalgoritmizacao.World
 
         private void UpdateAtendimentoScheduling()
         {
-            if (isAtendimentoRequested || !gameplayStarted)
+            if (!gameplayStarted)
             {
                 return;
             }
 
-            bool eligible = !IsUsingGameplayMechanic();
-            if (!eligible)
+            if (!IsInFreeRoamExploration())
+            {
+                if (isAtendimentoRequested)
+                {
+                    isAtendimentoRequested = false;
+                    ScheduleNextAtendimento();
+                }
+
+                return;
+            }
+
+            if (isAtendimentoRequested)
             {
                 return;
             }
