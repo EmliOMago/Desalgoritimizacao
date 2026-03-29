@@ -12,82 +12,105 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49d29cb09d075c03a687eabf2e64e77c, type: 3}
   m_Name: AppThemeConfig
   m_EditorClassIdentifier: 
-  gameTitle: "Desalgoritmização"
-  presentationLine: "Nem toda trajetória cabe no perfil que o sistema enxerga."
-  menuIntro: "Você opera uma central que distribui acesso a oportunidades locais. O algoritmo lê primeiro. O contexto precisa ser investigado."
-  dashboardSummary: "A central organiza casos, decisões e impacto acumulado entre eficiência, confiança e sensibilidade."
-  startButtonLabel: "Iniciar operação"
-  queueTitle: "Fila de candidaturas"
-  beginCaseButtonLabel: "Analisar próximo caso"
-  profilePanelTitle: "Ficha visível"
-  algorithmPanelTitle: "Leitura algorítmica"
-  investigationPanelTitle: "Investigação contextual"
-  alternativesPanelTitle: "Saídas possíveis"
-  impactPanelTitle: "Registro de impacto"
-  nextCaseButtonLabel: "Registrar e voltar à central"
-  restartButtonLabel: "Reiniciar ciclo"
-  unlockInvestigationLabel: "Abrir investigação contextual"
-  returnToDashboardLabel: "Voltar à central"
-  sessionSummaryTitle: "Síntese do ciclo"
-  decisionLogTitle: "Histórico de decisões"
-  scrollIndicatorLabel: "Role para ver mais"
+  gameTitle: Desalgoritmizar
+  presentationLine: "Nem toda trajet\xF3ria cabe no perfil que o sistema enxerga."
+  menuIntro: "Voc\xEA opera uma central que distribui acesso a oportunidades locais.
+    O algoritmo l\xEA primeiro. O contexto precisa ser investigado."
+  dashboardSummary: "A central organiza casos, decis\xF5es e impacto acumulado entre
+    efici\xEAncia, confian\xE7a e sensibilidade."
+  startButtonLabel: "Iniciar opera\xE7\xE3o"
+  queueTitle: Fila de candidaturas
+  beginCaseButtonLabel: "Analisar pr\xF3ximo caso"
+  profilePanelTitle: "Ficha vis\xEDvel"
+  algorithmPanelTitle: "Leitura algor\xEDtmica"
+  investigationPanelTitle: "Investiga\xE7\xE3o contextual"
+  alternativesPanelTitle: "Sa\xEDdas poss\xEDveis"
+  impactPanelTitle: Registro de impacto
+  nextCaseButtonLabel: Registrar e imprimir o cadastro
+  restartButtonLabel: Reiniciar ciclo
+  quitGameButtonLabel: Sair do jogo
+  unlockInvestigationLabel: "Abrir investiga\xE7\xE3o contextual"
+  returnToDashboardLabel: "Voltar \xE0 central"
+  sessionSummaryTitle: "S\xEDntese do ciclo"
+  decisionLogTitle: "Hist\xF3rico de decis\xF5es"
+  scrollIndicatorLabel: Role para ver mais
   startingOperationalEfficiency: 58
   startingCommunityTrust: 52
   startingSystemSensitivity: 34
-  recommendedAnalysisSeconds: 45.0
-  slowPenaltyIntervalSeconds: 25.0
-  casesPerCycle: 20
+  recommendedAnalysisSeconds: 45
+  slowPenaltyIntervalSeconds: 25
+  casesPerCycle: 30
   generatedCasePoolSize: 120
   rankingMaxEntries: 12
   shuffleSeed: 41031
   defaultOperatorName: Operador
-  victoryRuleLabel: "Vitória: os três indicadores precisam chegar a 100."
-  defeatRuleLabel: "Derrota: qualquer indicador chegando a 0 encerra o ciclo."
-  rankingTitle: "Registro de ciclos"
-  rankingSubtitle: "Confiança comunitária define a ordem do painel."
-  smallTextScale: 1.0
-  bodyTextScale: 1.0
-  headingTextScale: 1.0
-  titleTextScale: 1.0
+  victoryRuleLabel: "Vit\xF3ria: os tr\xEAs indicadores precisam chegar a 100."
+  defeatRuleLabel: 'Derrota: qualquer indicador chegando a 0 encerra o ciclo.'
+  rankingTitle: Registro de ciclos
+  rankingSubtitle: "Confian\xE7a comunit\xE1ria define a ordem do painel."
+  smallTextScale: 1
+  bodyTextScale: 1
+  headingTextScale: 1
+  titleTextScale: 1
   minimumReadableFontSize: 12
   scrollbarWidth: 16
-  backgroundColor: {r: 0.07, g: 0.08, b: 0.11, a: 1.0}
-  surfaceColor: {r: 0.11, g: 0.13, b: 0.18, a: 1.0}
-  elevatedSurfaceColor: {r: 0.15, g: 0.18, b: 0.24, a: 1.0}
-  systemAccentColor: {r: 0.25, g: 0.67, b: 0.98, a: 1.0}
-  humanAccentColor: {r: 0.95, g: 0.76, b: 0.33, a: 1.0}
-  positiveColor: {r: 0.29, g: 0.78, b: 0.5, a: 1.0}
-  negativeColor: {r: 0.88, g: 0.35, b: 0.35, a: 1.0}
-  warningColor: {r: 0.96, g: 0.53, b: 0.25, a: 1.0}
-  textPrimaryColor: {r: 0.95, g: 0.96, b: 0.98, a: 1.0}
-  textSecondaryColor: {r: 0.72, g: 0.76, b: 0.84, a: 1.0}
-  mutedOverlayColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.18}
+  backgroundColor: {r: 0.07, g: 0.08, b: 0.11, a: 1}
+  surfaceColor: {r: 0.11, g: 0.13, b: 0.18, a: 1}
+  elevatedSurfaceColor: {r: 0.15, g: 0.18, b: 0.24, a: 1}
+  systemAccentColor: {r: 0.25, g: 0.67, b: 0.98, a: 1}
+  humanAccentColor: {r: 0.95, g: 0.76, b: 0.33, a: 1}
+  positiveColor: {r: 0.29, g: 0.78, b: 0.5, a: 1}
+  negativeColor: {r: 0.88, g: 0.35, b: 0.35, a: 1}
+  warningColor: {r: 0.96, g: 0.53, b: 0.25, a: 1}
+  textPrimaryColor: {r: 0.95, g: 0.96, b: 0.98, a: 1}
+  textSecondaryColor: {r: 0.72, g: 0.76, b: 0.84, a: 1}
+  mutedOverlayColor: {r: 0, g: 0, b: 0, a: 0.18}
   endings:
-  - endingId: "sensitive_efficiency"
-    title: "Eficiência Sensível"
-    description: "A central continua funcionando com ritmo aceitável, mas já não trata exceções como ruído descartável. O sistema aprende que contexto humano também é dado relevante, a comunidade volta a confiar no processo e a automação deixa de ocupar sozinha o lugar de verdade."
-    tone: "equilíbrio atento"
-  - endingId: "total_automation"
-    title: "Automação Total"
-    description: "A operação atinge ótima velocidade e previsibilidade, porém a fila passa a privilegiar quem já performa bem diante do padrão digital. A central parece eficiente por fora, mas oportunidades se estreitam para trajetórias menos legíveis."
-    tone: "produtividade fria"
-  - endingId: "radical_humanization"
-    title: "Humanização Radical"
-    description: "Suas decisões empurram a instituição para rever o modelo de triagem com profundidade. O processo fica mais lento e mais trabalhoso, mas as camadas humanas deixam de ser periféricas e passam a influenciar o próprio desenho do sistema."
-    tone: "ruptura cuidadosa"
-  - endingId: "operational_collapse"
-    title: "Colapso Operacional"
-    description: "A central perde coerência, acumula atrito e não consegue sustentar o fluxo de trabalho. Mesmo com boa intenção, faltou equilíbrio entre leitura profunda, gestão do volume e sustentação do processo institucional."
-    tone: "sobrecarga"
-  - endingId: "collective_victory"
-    title: "Convergência Comunitária"
-    description: "A central alcança o raro ponto em que eficiência operacional, confiança comunitária e sensibilidade do sistema chegam ao máximo ao mesmo tempo. O processo deixa de tratar contexto humano como exceção e passa a operar com legitimidade, precisão e responsabilidade coletiva."
-    tone: "vitória estrutural"
-  - endingId: "indicator_collapse"
-    title: "Queda de Indicador"
-    description: "Um dos pilares do ciclo chegou a zero antes que a central pudesse se reequilibrar. O encerramento revela que o sistema não suporta qualquer desenho de decisão: quando um indicador entra em colapso, a operação inteira perde sustentação."
-    tone: "derrota imediata"
-  - endingId: "passive_conformity"
-    title: "Conformidade Passiva"
-    description: "A automação guiou quase todas as escolhas sem resistência real. O operador humano existiu apenas para confirmar decisões que já vinham prontas, e a central saiu do ciclo mais rígida do que entrou."
-    tone: "acomodação"
+  - endingId: sensitive_efficiency
+    title: "Efici\xEAncia Sens\xEDvel"
+    description: "A central continua funcionando com ritmo aceit\xE1vel, mas j\xE1
+      n\xE3o trata exce\xE7\xF5es como ru\xEDdo descart\xE1vel. O sistema aprende
+      que contexto humano tamb\xE9m \xE9 dado relevante, a comunidade volta a confiar
+      no processo e a automa\xE7\xE3o deixa de ocupar sozinha o lugar de verdade."
+    tone: "equil\xEDbrio atento"
+  - endingId: total_automation
+    title: "Automa\xE7\xE3o Total"
+    description: "A opera\xE7\xE3o atinge \xF3tima velocidade e previsibilidade,
+      por\xE9m a fila passa a privilegiar quem j\xE1 performa bem diante do padr\xE3o
+      digital. A central parece eficiente por fora, mas oportunidades se estreitam
+      para trajet\xF3rias menos leg\xEDveis."
+    tone: produtividade fria
+  - endingId: radical_humanization
+    title: "Humaniza\xE7\xE3o Radical"
+    description: "Suas decis\xF5es empurram a institui\xE7\xE3o para rever o modelo
+      de triagem com profundidade. O processo fica mais lento e mais trabalhoso,
+      mas as camadas humanas deixam de ser perif\xE9ricas e passam a influenciar
+      o pr\xF3prio desenho do sistema."
+    tone: ruptura cuidadosa
+  - endingId: operational_collapse
+    title: Colapso Operacional
+    description: "A central perde coer\xEAncia, acumula atrito e n\xE3o consegue
+      sustentar o fluxo de trabalho. Mesmo com boa inten\xE7\xE3o, faltou equil\xEDbrio
+      entre leitura profunda, gest\xE3o do volume e sustenta\xE7\xE3o do processo
+      institucional."
+    tone: sobrecarga
+  - endingId: collective_victory
+    title: "Converg\xEAncia Comunit\xE1ria"
+    description: "A central alcan\xE7a o raro ponto em que efici\xEAncia operacional,
+      confian\xE7a comunit\xE1ria e sensibilidade do sistema chegam ao m\xE1ximo
+      ao mesmo tempo. O processo deixa de tratar contexto humano como exce\xE7\xE3o
+      e passa a operar com legitimidade, precis\xE3o e responsabilidade coletiva."
+    tone: "vit\xF3ria estrutural"
+  - endingId: indicator_collapse
+    title: Queda de Indicador
+    description: "Um dos pilares do ciclo chegou a zero antes que a central pudesse
+      se reequilibrar. O encerramento revela que o sistema n\xE3o suporta qualquer
+      desenho de decis\xE3o: quando um indicador entra em colapso, a opera\xE7\xE3o
+      inteira perde sustenta\xE7\xE3o."
+    tone: derrota imediata
+  - endingId: passive_conformity
+    title: Conformidade Passiva
+    description: "A automa\xE7\xE3o guiou quase todas as escolhas sem resist\xEAncia
+      real. O operador humano existiu apenas para confirmar decis\xF5es que j\xE1
+      vinham prontas, e a central saiu do ciclo mais r\xEDgida do que entrou."
+    tone: "acomoda\xE7\xE3o"
