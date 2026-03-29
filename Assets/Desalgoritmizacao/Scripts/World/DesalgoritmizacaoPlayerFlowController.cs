@@ -113,8 +113,8 @@ namespace Desalgoritmizacao.World
         private CursorLockMode lastCursorLockMode = CursorLockMode.None;
         private bool cursorStateInitialized;
         private Texture2D operatorCursorTexture;
+        private Vector2 operatorCursorHotspot = Vector2.zero;
         private bool operatorCursorApplied;
-        private static readonly Vector2 OperatorCursorHotspot = Vector2.zero;
 
         public string CurrentStatusMessage
         {
@@ -172,7 +172,7 @@ namespace Desalgoritmizacao.World
             app = UnityEngine.Object.FindFirstObjectByType<DesalgoritmizacaoApp>();
             config = Resources.Load<DesalgoritmizacaoInteractionConfig>("Desalgoritmizacao/Config/InteractionConfig");
             printerConfig = config != null ? config.printerQuickTimeConfig : null;
-            operatorCursorTexture = CreateCursorTextureFromResource("Desalgoritmizacao/Visuals/arrow-cursor");
+            operatorCursorTexture = CreateCursorTextureFromResource("Desalgoritmizacao/Visuals/arrow-cursor", out operatorCursorHotspot);
 
             ConfigurePhysics();
             CacheSceneReferences();
@@ -1117,7 +1117,7 @@ namespace Desalgoritmizacao.World
             {
                 if (!operatorCursorApplied)
                 {
-                    Cursor.SetCursor(operatorCursorTexture, OperatorCursorHotspot, CursorMode.Auto);
+                    Cursor.SetCursor(operatorCursorTexture, operatorCursorHotspot, CursorMode.Auto);
                     operatorCursorApplied = true;
                 }
 
@@ -1131,8 +1131,9 @@ namespace Desalgoritmizacao.World
             }
         }
 
-        private Texture2D CreateCursorTextureFromResource(string resourcePath)
+        private Texture2D CreateCursorTextureFromResource(string resourcePath, out Vector2 hotspot)
         {
+            hotspot = Vector2.zero;
             Texture2D sourceTexture = Resources.Load<Texture2D>(resourcePath);
             if (sourceTexture == null)
             {
@@ -1146,10 +1147,59 @@ namespace Desalgoritmizacao.World
             {
                 Graphics.Blit(sourceTexture, temporary);
                 RenderTexture.active = temporary;
-                Texture2D cursorTexture = new Texture2D(sourceTexture.width, sourceTexture.height, TextureFormat.RGBA32, false, false);
+
+                Texture2D readableTexture = new Texture2D(sourceTexture.width, sourceTexture.height, TextureFormat.RGBA32, false, false);
+                readableTexture.name = sourceTexture.name + "_RuntimeCursorReadable";
+                readableTexture.ReadPixels(new Rect(0f, 0f, sourceTexture.width, sourceTexture.height), 0, 0, false);
+                readableTexture.Apply(false, false);
+
+                Color32[] pixels = readableTexture.GetPixels32();
+                int width = readableTexture.width;
+                int height = readableTexture.height;
+                int minX = width;
+                int minY = height;
+                int maxX = -1;
+                int maxY = -1;
+
+                for (int y = 0; y < height; y++)
+                {
+                    int rowOffset = y * width;
+                    for (int x = 0; x < width; x++)
+                    {
+                        if (pixels[rowOffset + x].a <= 10)
+                        {
+                            continue;
+                        }
+
+                        if (x < minX) minX = x;
+                        if (y < minY) minY = y;
+                        if (x > maxX) maxX = x;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+
+                if (maxX < minX || maxY < minY)
+                {
+                    readableTexture.name = sourceTexture.name + "_RuntimeCursor";
+                    hotspot = Vector2.zero;
+                    return readableTexture;
+                }
+
+                int croppedWidth = maxX - minX + 1;
+                int croppedHeight = maxY - minY + 1;
+                Texture2D cursorTexture = new Texture2D(croppedWidth, croppedHeight, TextureFormat.RGBA32, false, false);
                 cursorTexture.name = sourceTexture.name + "_RuntimeCursor";
-                cursorTexture.ReadPixels(new Rect(0f, 0f, sourceTexture.width, sourceTexture.height), 0, 0, false);
+                cursorTexture.SetPixels(readableTexture.GetPixels(minX, minY, croppedWidth, croppedHeight));
                 cursorTexture.Apply(false, false);
+
+                Destroy(readableTexture);
+
+                int tipX = 123;
+                int tipY = 30;
+                hotspot = new Vector2(
+                    Mathf.Clamp(tipX - minX, 0, croppedWidth - 1),
+                    Mathf.Clamp(tipY - minY, 0, croppedHeight - 1));
+
                 return cursorTexture;
             }
             finally

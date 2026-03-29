@@ -799,19 +799,12 @@ namespace Desalgoritmizacao.UI
             }
 
             Transform existing = headerRoot.Find("HeaderExitButton");
-            if (existing == null)
+            if (existing != null)
             {
-                GameObject buttonGo = UIFactory.CreateUIObject("HeaderExitButton", headerRoot);
-                RectTransform rect = buttonGo.GetComponent<RectTransform>();
-                rect.anchorMin = new Vector2(1f, 1f);
-                rect.anchorMax = new Vector2(1f, 1f);
-                rect.pivot = new Vector2(1f, 1f);
-                rect.sizeDelta = new Vector2(154f, 42f);
-                rect.anchoredPosition = new Vector2(-22f, -20f);
+                Destroy(existing.gameObject);
             }
 
-            headerExitButton = PrepareButtonOnRect(headerRoot.Find("HeaderExitButton") as RectTransform, "Sair", theme != null ? theme.elevatedSurfaceColor : Color.gray, theme != null ? theme.textPrimaryColor : Color.white, 16, ReturnToInitialMenu);
-            SetHeaderExitVisible(false);
+            headerExitButton = null;
         }
 
         private Button PrepareButtonOnRect(RectTransform rect, string label, Color backgroundColor, Color textColor, int baseSize, UnityAction action)
