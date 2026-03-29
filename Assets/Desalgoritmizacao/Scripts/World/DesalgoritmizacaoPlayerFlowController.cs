@@ -94,12 +94,16 @@ namespace Desalgoritmizacao.World
         private float cameraPitch;
         private Vector3 desiredMovement;
         private PrinterRunState activePrinterRun;
+        private bool hasSavedStationExitPose;
+        private Vector3 savedStationPlayerPosition;
+        private Quaternion savedStationPlayerRotation = Quaternion.identity;
+        private Quaternion savedStationCameraLocalRotation = Quaternion.identity;
 
         public string CurrentStatusMessage
         {
             get
             {
-                if (isAtendimentoRequested)
+                if (isAtendimentoRequested && IsInFreeRoamExploration())
                 {
                     return "Atendimento solicitado";
                 }
@@ -535,6 +539,7 @@ namespace Desalgoritmizacao.World
                 ScheduleNextAtendimento();
             }
 
+            SaveStationExitPose();
             currentStation = stationType;
             currentStationTrigger = stationTrigger;
             currentStationAnchor = stationAnchor;
@@ -558,7 +563,7 @@ namespace Desalgoritmizacao.World
                 return;
             }
 
-            PushPlayerOutOfTrigger(currentStationTrigger);
+            RestoreSavedStationExitPose();
             currentStation = StationType.None;
             currentStationTrigger = null;
             currentStationAnchor = null;
@@ -584,6 +589,35 @@ namespace Desalgoritmizacao.World
             Physics.SyncTransforms();
         }
 
+        private void SaveStationExitPose()
+        {
+            if (playerBody == null || targetCamera == null)
+            {
+                return;
+            }
+
+            hasSavedStationExitPose = true;
+            savedStationPlayerPosition = playerBody.position;
+            savedStationPlayerRotation = playerBody.rotation;
+            savedStationCameraLocalRotation = targetCamera.transform.localRotation;
+        }
+
+        private void RestoreSavedStationExitPose()
+        {
+            if (!hasSavedStationExitPose || playerBody == null || targetCamera == null)
+            {
+                PushPlayerOutOfTrigger(currentStationTrigger);
+                return;
+            }
+
+            playerBody.position = savedStationPlayerPosition;
+            playerBody.rotation = savedStationPlayerRotation;
+            transform.SetPositionAndRotation(savedStationPlayerPosition, savedStationPlayerRotation);
+            targetCamera.transform.localRotation = savedStationCameraLocalRotation;
+            Physics.SyncTransforms();
+            hasSavedStationExitPose = false;
+        }
+
         private void MaintainDockAlignment()
         {
             if (currentStationAnchor == null)
@@ -598,6 +632,7 @@ namespace Desalgoritmizacao.World
 
         private void PushPlayerOutOfTrigger(Collider trigger)
         {
+            hasSavedStationExitPose = false;
             if (trigger == null)
             {
                 return;
@@ -844,6 +879,11 @@ namespace Desalgoritmizacao.World
 
         private void UpdateCursorAndUiState()
         {
+            if (currentStation != StationType.None || isPrinterPending || isPrinterRunning)
+            {
+                isAtendimentoRequested = false;
+            }
+
             bool allowMenuCursor = gameplayStarted && currentStation == StationType.Pc && stationAllowsUiInteraction && !isAtendimentoRequested && !isExitPromptVisible;
 
             ApplyCursorState();
@@ -866,7 +906,7 @@ namespace Desalgoritmizacao.World
 
             Cursor.lockState = forceVisibleCursor ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = forceVisibleCursor;
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            Cursor.SetCursor(null, Vector2.zero, forceVisibleCursor ? CursorMode.ForceSoftware : CursorMode.Auto);
         }
 
         private void CreateOverlayCanvas()
@@ -1023,6 +1063,18 @@ namespace Desalgoritmizacao.World
         {
             if (!gameplayStarted)
             {
+                isAtendimentoRequested = false;
+                return;
+            }
+
+            if (currentStation != StationType.None || isPrinterPending || isPrinterRunning || isExitPromptVisible || app == null || !app.IsDashboardScreen)
+            {
+                if (isAtendimentoRequested)
+                {
+                    isAtendimentoRequested = false;
+                    ScheduleNextAtendimento();
+                }
+
                 return;
             }
 

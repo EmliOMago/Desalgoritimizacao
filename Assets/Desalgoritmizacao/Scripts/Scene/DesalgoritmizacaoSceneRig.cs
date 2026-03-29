@@ -192,8 +192,6 @@ namespace Desalgoritmizacao.Scene
 
             if (Object.FindFirstObjectByType<Desalgoritmizacao.World.DesalgoritmizacaoPlayerFlowController>() != null)
             {
-                yawOffset = 0f;
-                cameraPivot.localRotation = initialPivotLocalRotation;
                 return;
             }
 
