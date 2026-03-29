@@ -2279,8 +2279,8 @@ Transform:
   m_GameObject: {fileID: 684272980}
   serializedVersion: 2
   m_LocalRotation: {x: 1, y: -0, z: -0, w: 0}
-  m_LocalPosition: {x: -6.159, y: 0.335, z: 3.8684}
-  m_LocalScale: {x: 0.15958823, y: 0.07234512, z: 0.21014646}
+  m_LocalPosition: {x: -7.2343, y: 0.335, z: 3.8684}
+  m_LocalScale: {x: 0.37464935, y: 0.07234512, z: 0.21014646}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1067188947}
@@ -2768,6 +2768,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2638114904678315477, guid: 009ac3bc89a8c994aaa64e90fed60ab2, type: 3}
   m_PrefabInstance: {fileID: 995482003}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &998013929
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 998013930}
+  m_Layer: 0
+  m_Name: PontoSaida
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &998013930
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 998013929}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -19.44, y: 0.00942, z: -3.96}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1030362807
 GameObject:
   m_ObjectHideFlags: 0
@@ -6629,3 +6660,4 @@ SceneRoots:
   - {fileID: 588214928}
   - {fileID: 737076758}
   - {fileID: 986072724}
+  - {fileID: 998013930}
