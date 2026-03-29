@@ -1,0 +1,440 @@
+DESALGORITMIZAÇÃO - ARQUITETURA E CONFIGURAÇÕES DO PROJETO
+Estado de referência consolidado em 29/03/2026
+
+FONTE DE VERDADE UTILIZADA
+- Pacote-base inspecionado: Assets202603291515.zip
+- Documento-base de design consultado: GDD - Desalgoritmização.pdf
+- Validação funcional complementar considerada: os testes mais recentes confirmaram os ajustes do modal de saída e do fluxo de nome do operador no menu inicial.
+
+1. IDENTIDADE E ESCOPO DO PROJETO
+Nome do projeto: Desalgoritmização
+Motor: Unity 6000.1.14f1
+Plataforma atual: PC
+Cena principal atual: Assets/Scenes/CenaPrincipal.unity
+Modelo de experiência: jogo híbrido entre exploração 3D curta e operação por interface.
+
+Resumo operacional do estado atual:
+- O jogador entra em um menu inicial full screen.
+- Informa o nome do operador.
+- Inicia um ciclo de triagem com lote controlado de casos.
+- Explora fisicamente a central 3D.
+- Usa o terminal principal para abrir a interface de decisão.
+- Pode receber interrupções físicas de atendimento na central.
+- Quando um caso é concluído no terminal, o fluxo solicita impressão do registro.
+- O jogador deve ir até a impressora e concluir um quick time event com setas.
+- Ao longo do ciclo, NPCs de atendimento surgem no PontoEntrada, caminham até o PontoAtendimento, aguardam atendimento olhando para o jogador e depois saem pelo PontoSaida.
+- A rodada termina por esgotamento do lote, vitória máxima ou colapso de indicador.
+
+2. ESTRUTURA DE PASTAS RELEVANTES
+Assets/Desalgoritmizacao/Scripts/Bootstrap
+Assets/Desalgoritmizacao/Scripts/Data
+Assets/Desalgoritmizacao/Scripts/Editor
+Assets/Desalgoritmizacao/Scripts/Runtime
+Assets/Desalgoritmizacao/Scripts/Scene
+Assets/Desalgoritmizacao/Scripts/UI
+Assets/Desalgoritmizacao/Scripts/World
+Assets/Desalgoritmizacao/Resources/Desalgoritmizacao/Config
+Assets/Desalgoritmizacao/Resources/Desalgoritmizacao/Cases
+Assets/Desalgoritmizacao/Resources/Desalgoritmizacao/NPCs
+Assets/Desalgoritmizacao/Resources/Desalgoritmizacao/Prefabs
+Assets/Desalgoritmizacao/Resources/Desalgoritmizacao/Visuals
+
+3. CONTRATO DE CENA E OBJETOS ESPERADOS
+O fluxo atual depende de nomes exatos localizados em runtime por busca global.
+Objetos e âncoras esperados:
+- jogador
+- LocalCamPC
+- LocalCamImpre
+- LocalCamInicio
+- TriggerPC
+- TriggerImpressora
+- TriggerPorta
+- TriggerAtendimento
+- PontoEntrada
+- PontoAtendimento
+- PontoSaida
+
+Uso desses pontos:
+- LocalCamInicio: posição inicial da câmera e do corpo do jogador.
+- LocalCamPC: âncora de docking da estação do terminal.
+- LocalCamImpre: âncora de docking da estação da impressora.
+- TriggerPC: entrada automática na estação do terminal quando permitido.
+- TriggerImpressora: entrada na impressora somente quando a impressão estiver pendente.
+- TriggerPorta: abertura do modal de confirmação de saída.
+- TriggerAtendimento: conclusão física do atendimento quando a chamada está ativa.
+- PontoEntrada: spawn do NPC de atendimento.
+- PontoAtendimento: ponto de parada do NPC antes do atendimento do jogador.
+- PontoSaida: destino final do NPC após o atendimento.
+
+4. BOOTSTRAP E INICIALIZAÇÃO
+Script central: Assets/Desalgoritmizacao/Scripts/Bootstrap/DesalgoritmizacaoBootstrap.cs
+Função:
+- Garante que exista um objeto raiz com DesalgoritmizacaoApp.
+- Garante EventSystem.
+- Procura o objeto do jogador e injeta DesalgoritmizacaoPlayerFlowController se necessário.
+- Se não houver rig dedicado de cena e houver câmera válida, ativa DesalgoritmizacaoTemporaryCameraLook.
+
+Consequência prática:
+- O projeto tolera cenas incompletas melhor do que uma montagem totalmente manual.
+- A UI principal pode nascer sozinha em runtime.
+
+5. CAMADA DE DADOS
+5.1 AppThemeConfig
+Arquivo: Resources/Desalgoritmizacao/Config/AppThemeConfig.asset
+Valores atuais mais importantes:
+- gameTitle: "Desalgoritmização"
+- presentationLine: "Nem toda trajetória cabe no perfil que o sistema enxerga."
+- startButtonLabel: "Iniciar operação"
+- queueTitle: "Fila de candidaturas"
+- beginCaseButtonLabel: "Analisar próximo caso"
+- startingOperationalEfficiency: 58
+- startingCommunityTrust: 52
+- startingSystemSensitivity: 34
+- recommendedAnalysisSeconds: 45.0
+- slowPenaltyIntervalSeconds: 25.0
+- casesPerCycle: 20
+- generatedCasePoolSize: 120
+- rankingMaxEntries: 12
+- shuffleSeed: 41031
+- rankingTitle: "Registro de ciclos"
+- rankingSubtitle: "Confiança comunitária define a ordem do painel."
+- scrollbarWidth: 16
+
+Catálogo de finais configurado no tema:
+- Eficiência Sensível
+- Automação Total
+- Humanização Radical
+- Colapso Operacional
+- Convergência Comunitária
+- Queda de Indicador
+- Conformidade Passiva
+
+5.2 CandidateCaseDefinition
+Cada caso define:
+- identidade do caso
+- dados visíveis do candidato
+- leitura algorítmica
+- camadas de investigação
+- opções de decisão
+- mensagem de fechamento
+
+Estrutura operacional do caso:
+- 1 bloco de identidade
+- 1 bloco de leitura algorítmica
+- lista de camadas contextuais
+- lista de decisões possíveis
+- 1 mensagem de encerramento
+
+Biblioteca atual de casos-base:
+- total de assets encontrados: 21
+- padrão observado nas amostras: 3 camadas de investigação e 3 opções de decisão por caso
+
+5.3 InteractionConfig
+Arquivo: Resources/Desalgoritmizacao/Config/InteractionConfig.asset
+Valores atuais:
+- runtimeInputJsonResourcePath: Desalgoritmizacao/Config/InputSystem_Actions_Runtime
+- editorSourceRelativePath: InputSystem_Actions.inputactions
+- playerActionMap: Player
+- moveActionName: Move
+- lookActionName: Look
+- stationLookModifierActionName: StationLook
+- printerUpActionName: PrinterUp
+- printerDownActionName: PrinterDown
+- printerLeftActionName: PrinterLeft
+- printerRightActionName: PrinterRight
+- moveSpeed: 2.9
+- lookSensitivity: 0.1
+- stationLookSensitivity: 0.08
+- minimumPitch: -70
+- maximumPitch: 72
+- stationReleaseDistance: 1.35
+- atendimentoMinDelaySeconds: 25
+- atendimentoMaxDelaySeconds: 55
+- feedbackBannerSeconds: 2
+
+5.4 PrinterQuickTimeConfig
+Arquivo: Resources/Desalgoritmizacao/Config/PrinterQuickTimeConfig.asset
+Valores atuais:
+- minimumSequenceLength: 4
+- maximumSequenceLength: 8
+- minimumInputWindowSeconds: 1
+- maximumInputWindowSeconds: 2
+- restartPauseSeconds: 0.65
+- previewIconCount: 4
+- title: Configure a impressora
+- subtitle: "Acione as setas na ordem certa para concluir a impress\xE3o."
+- successMessage: Registro impresso. Retorne ao computador.
+- failureMessage: "Falha na impress\xE3o. Configure novamente."
+
+6. INPUTS E AÇÕES
+Arquivo base: Resources/Desalgoritmizacao/Config/InputSystem_Actions_Runtime.json
+Action Maps atuais:
+- Player: Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, StationLook, PrinterUp, PrinterDown, PrinterLeft, PrinterRight
+- UI: Navigate, Submit, Cancel, Point, Click, RightClick, MiddleClick, ScrollWheel, TrackedDevicePosition, TrackedDeviceOrientation
+
+Uso real no projeto atual:
+- Move: deslocamento do jogador
+- Look: olhar livre
+- StationLook: olhar temporário enquanto dockado no terminal
+- PrinterUp, PrinterDown, PrinterLeft, PrinterRight: quick time event da impressora
+- UI map: navegação e clique nos canvases
+
+Observação importante:
+- O projeto carrega o JSON diretamente do arquivo do projeto quando possível e usa o TextAsset em Resources como fallback.
+
+7. ARQUITETURA DA UI
+Script central: Assets/Desalgoritmizacao/Scripts/UI/DesalgoritmizacaoApp.cs
+Estados principais:
+- Menu
+- Dashboard
+- Case
+- Result
+- Final
+
+Canvases principais:
+- InitialMenuCanvas: overlay de menu inicial full screen
+- DesalgoritmizacaoCanvas: canvas principal da operação
+- DesalgoritmizacaoRankingCanvas: painel externo de ranking de ciclos
+
+Tela de Menu:
+- título do projeto
+- frase de apresentação
+- ilustração inicial
+- painel de identificação do operador
+- bloco de regras do ciclo
+- botões principais de iniciar e sair
+
+Estado validado em testes recentes do menu inicial:
+- ao retornar ao menu, o campo de nome deve reabrir limpo
+- o botão de iniciar deve permanecer oculto até existir novo nome válido
+- deve existir texto de aviso informando esse pré-requisito
+
+Tela Dashboard:
+- cabeçalho com status externo
+- métricas: eficiência operacional, confiança comunitária e sensibilidade do sistema
+- fila de candidaturas
+- painel de impacto/histórico
+- botão para analisar o próximo caso somente quando o fluxo físico permitir
+
+Tela de Caso:
+- painel de ficha visível
+- painel de leitura algorítmica
+- painel de investigação contextual
+- painel de saídas possíveis
+- temporizador de análise com meta e alerta de atraso
+
+Tela de Resultado:
+- feedback imediato da decisão
+- deltas dos três indicadores
+- registro do caso
+- retorno à central ou ida para síntese final
+
+Tela Final:
+- final textual
+- resumo dos três indicadores
+- histórico de decisões
+- registro em ranking persistente
+
+8. SISTEMA DE CICLO E CASOS
+8.1 Geração do lote
+Script: Runtime/DesalgoritmizacaoCaseDeckBuilder.cs
+Função:
+- parte dos 21 casos-base
+- cria um pool expandido de 120 entradas por variação controlada
+- sorteia um lote de 20 casos por rodada
+- evita repetição imediata entre rodadas por reserva persistente do baralho
+
+8.2 Estado do ciclo
+Script: Runtime/DesalgoritmizacaoSessionState.cs
+Controla:
+- métricas da rodada
+- histórico de decisões
+- índice do caso atual
+- total de camadas lidas
+- taxa de concordância com o algoritmo
+- tempo total de análise
+
+8.3 Avaliação
+Script: Runtime/DesalgoritmizacaoEvaluationEngine.cs
+Regras atuais:
+- vitória imediata se os três indicadores chegarem a 100
+- derrota imediata se qualquer indicador chegar a 0
+- caso o lote termine sem vitória ou derrota, o final é calculado por combinação de indicadores e taxa de concordância com o algoritmo
+- análise lenta reduz eficiência operacional
+- análise muito rápida sem abrir camadas pode gerar pequeno bônus operacional
+- abrir ao menos duas camadas e contrariar o algoritmo favorece sensibilidade do sistema
+
+Finais calculados por lógica atual:
+- collective_victory
+- indicator_collapse
+- operational_collapse
+- radical_humanization
+- total_automation
+- passive_conformity
+- sensitive_efficiency
+
+9. PERSISTÊNCIA
+Script: Runtime/DesalgoritmizacaoPersistentProgress.cs
+Chave atual de PlayerPrefs:
+- Desalgoritmizacao.PersistentProgress
+
+Dados persistidos:
+- nome do operador
+- contador de ciclos
+- geração de embaralhamento
+- cursor do baralho expandido
+- índices embaralhados do pool
+- ranking persistente
+
+Ordenação do ranking:
+1. confiança comunitária
+2. eficiência operacional
+3. sensibilidade do sistema
+4. número do ciclo mais recente
+
+10. CAMADA 3D E CÂMERA
+10.1 Rig de cena
+Script: Scene/DesalgoritmizacaoSceneRig.cs
+Funções:
+- garante âncoras de canvas na cena
+- resolve câmera de UI
+- mantém canvas menu, gameplay e ranking em world space quando o rig existe
+- permite olhar temporário da câmera quando não há PlayerFlowController ativo
+
+Parâmetros principais do rig:
+- canvasSize: 1600 x 900
+- canvasScale: 0.0012
+- âncoras independentes para menu, gameplay e ranking
+
+10.2 Fallback sem rig completo
+Script: World/DesalgoritmizacaoTemporaryCameraLook.cs
+Função:
+- permite arrasto horizontal temporário da câmera com retorno suave à posição inicial
+
+11. CONTROLE DO JOGADOR E ESTAÇÕES
+Script: World/DesalgoritmizacaoPlayerFlowController.cs
+Papel central:
+- movimento do jogador
+- rotação da câmera
+- docking em estações
+- cursor operacional customizado
+- banners temporários
+- modal de saída
+- minigame da impressora
+- agendamento e fluxo de atendimento
+- bloqueios entre sistemas físicos e UI
+
+Fluxo de exploração:
+- o jogador circula livremente enquanto não estiver dockado em estação e enquanto o modal de saída não estiver aberto
+- ao entrar no TriggerPC, o jogador é encaixado na estação do terminal se o estado atual permitir
+- ao sair de uma estação, o pose de saída é restaurado
+
+Bloqueios principais atuais:
+- PC bloqueado enquanto houver impressão pendente ou em execução
+- PC bloqueado enquanto houver atendimento solicitado ou NPC de atendimento em curso
+- impressora só ativa quando a impressão estiver pendente
+- porta abre modal de confirmação e congela o restante do fluxo enquanto o modal está visível
+
+12. MINIGAME DO TERMINAL
+No estado atual, o terminal é a porta de entrada para a análise dos casos.
+Funções combinadas entre PlayerFlowController e DesalgoritmizacaoApp:
+- aproximar fisicamente o jogador do terminal
+- acoplar câmera e corpo à âncora da estação
+- permitir uso da interface da central
+- impedir reentrada imediata após sair do trigger
+
+13. MINIGAME DA IMPRESSORA
+Fluxo atual:
+- após registrar um caso, o fluxo externo sinaliza que há impressão pendente
+- o trigger da impressora é habilitado
+- ao entrar no trigger, o jogador é dockado na estação da impressora
+- o sistema sorteia sequência direcional de 4 a 8 entradas
+- a interface mostra a imagem grande do botão atual
+- as imagens pequenas mostram apenas os próximos botões, sem repetir o botão atual
+- se o jogador completar a sequência, o registro é impresso e o fluxo volta para o terminal
+- se falhar, o sistema entra em pequena pausa e reinicia o minigame
+
+14. FLUXO DE ATENDIMENTO COM NPC
+Script principal do NPC: World/DesalgoritmizacaoAtendimentoNpc.cs
+Integração orquestrada por: World/DesalgoritmizacaoPlayerFlowController.cs
+
+Fluxo atual completo:
+1. O agendador espera entre 25 e 55 segundos.
+2. Um NPC é instanciado em PontoEntrada.
+3. O visual é escolhido aleatoriamente entre 5 malhas Mixamo: Bryce, Elizabeth, James, Leonard, Sophie.
+4. O NPC caminha até PontoAtendimento.
+5. Ao chegar, para de andar, vira para o jogador e dispara a chamada de atendimento.
+6. O jogador vai até TriggerAtendimento para concluir o atendimento.
+7. O NPC passa a caminhar até PontoSaida.
+8. Ao chegar, é destruído.
+9. Um novo atendimento só pode ser agendado depois que o fluxo atual termina.
+
+Detalhes técnicos do NPC:
+- raiz com CharacterController
+- velocidade real de deslocamento: 1.52
+- blend de caminhada do Animator: 2.0
+- MotionSpeed do Animator: 1.08
+- gravidade local: -18
+- stop distance: 0.10
+- usa RuntimeAnimatorController StarterAssetsThirdPerson carregado por Resources
+- usa avatar válido do modelo visual selecionado
+- adiciona receptor vazio para AnimationEvents esperados pelo controller
+- inclui BasicRigidBodyPush apenas como compatibilidade estrutural, com empurrão desativado
+
+15. MODAL DE SAÍDA
+Fluxo:
+- TriggerPorta abre modal de confirmação
+- botões: sair e continuar
+- se continuar, o jogador é empurrado para fora do trigger para evitar reabertura imediata
+- em validações recentes, o texto do modal foi reposicionado para não colidir visualmente com os botões
+
+16. ASSETS RELEVANTES DO ESTADO ATUAL
+Casos-base encontrados: 21
+NPCs de atendimento encontrados: 5
+Lista dos NPCs atuais: Bryce, Elizabeth, James, Leonard, Sophie
+Visuals relevantes encontrados: 18
+Exemplos de visuals: ASDW, BA, BD, BDown, BLeft, BRigth, BS, BUp, BW, Incone, InitialMenuIllustration, Objetivo
+
+Prefabs principais atuais:
+- DesalgoritmizacaoCanvasShell.prefab
+- MenuScreen.prefab
+- DashboardScreen.prefab
+- CaseScreen.prefab
+- ResultScreen.prefab
+- FinalScreen.prefab
+- DesalgoritmizacaoSceneRig.prefab
+- InitialMenuCanvas.prefab
+
+17. DEPENDÊNCIAS E PACOTES VISÍVEIS NO PROJETO
+- StarterAssets
+  Uso atual: controller de animação e helper de colisão leve para NPCs de atendimento.
+- Free Wood Door Pack
+  Uso atual: assets de porta no cenário.
+- OfficeEssentialsPack
+  Uso atual: ambientação de escritório.
+- Universal Render Pipeline
+  Uso atual: projeto configurado com assets PC_RPAsset, Mobile_RPAsset e respectivos renderers.
+
+18. RISCOS E PONTOS DE MANUTENÇÃO
+- O fluxo depende fortemente de nomes exatos de objetos na cena.
+- O carregamento por Resources centraliza muito conteúdo; renomeações de caminho quebram o runtime.
+- O sistema de casos usa ScriptableObjects e variações em memória; mudanças de estrutura devem preservar compatibilidade com CaseDeckBuilder.
+- O ranking e o nome do operador vivem em PlayerPrefs; limpar dados externos apaga histórico.
+- O controller de animação dos NPCs pressupõe rig compatível com Humanoid.
+
+19. RESUMO EXECUTIVO DA ARQUITETURA
+O projeto atual é um protótipo narrativo-operacional em Unity que combina:
+- exploração 3D curta e controlada
+- telas de triagem por canvas
+- dados dirigidos por ScriptableObject
+- avaliação sistêmica por indicadores
+- minigame físico de impressão
+- fluxo físico de atendimento com NPCs
+- persistência leve por PlayerPrefs
+
+Em termos de arquitetura, o centro do sistema está dividido entre:
+- DesalgoritmizacaoApp para UI, ciclo e conteúdo
+- DesalgoritmizacaoPlayerFlowController para mundo físico, estações, cursor, impressora e atendimento
+- arquivos de Config e Cases em Resources para parametrização e conteúdo
+
+Esse arranjo faz o protótipo parecer um jogo de triagem institucional com corpo físico, espaço operacional e consequência sistêmica visível.
