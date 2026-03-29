@@ -18,11 +18,11 @@ MonoBehaviour:
   rightTexture: {fileID: 2800000, guid: 05ac9479375fec040b4d6de082fb9aac, type: 3}
   minimumSequenceLength: 4
   maximumSequenceLength: 8
-  minimumInputWindowSeconds: 0.45
-  maximumInputWindowSeconds: 0.95
+  minimumInputWindowSeconds: 1
+  maximumInputWindowSeconds: 2
   restartPauseSeconds: 0.65
   previewIconCount: 4
-  title: GPImpre
-  subtitle: Acione as setas na ordem certa para concluir a impressão.
+  title: Configure a impressora
+  subtitle: "Acione as setas na ordem certa para concluir a impress\xE3o."
   successMessage: Registro impresso. Retorne ao terminal.
-  failureMessage: Falha na impressão. Reiniciando sequência.
+  failureMessage: "Falha na impress\xE3o. Configure novamente."
