@@ -153,6 +153,7 @@ namespace Desalgoritmizacao.World
             printerConfig = config != null ? config.printerQuickTimeConfig : null;
 
             ConfigurePhysics();
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
             CacheSceneReferences();
             CreateOverlayCanvas();
             BindBridge();
@@ -380,6 +381,26 @@ namespace Desalgoritmizacao.World
             return gameplayStarted && currentStation == StationType.None && !isPrinterRunning && !isExitPromptVisible;
         }
 
+        private bool IsUsingGameplayMechanic()
+        {
+            if (!gameplayStarted)
+            {
+                return false;
+            }
+
+            if (currentStation != StationType.None)
+            {
+                return true;
+            }
+
+            if (isPrinterPending || isPrinterRunning || isExitPromptVisible)
+            {
+                return true;
+            }
+
+            return app != null && !app.IsDashboardScreen;
+        }
+
         private void UpdateFreeMovement()
         {
             Vector2 moveValue = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;
@@ -438,8 +459,6 @@ namespace Desalgoritmizacao.World
 
         private void UpdatePrinterDock()
         {
-            MaintainDockAlignment();
-
             if (isPrinterRunning)
             {
                 UpdatePrinterQuickTime();
@@ -806,6 +825,7 @@ namespace Desalgoritmizacao.World
             bool allowMenuCursor = gameplayStarted && currentStation == StationType.Pc && stationAllowsUiInteraction && !isAtendimentoRequested && !isExitPromptVisible;
             bool forceVisibleCursor = isExitPromptVisible || (!gameplayStarted && app != null && app.IsInInitialMenu) || allowMenuCursor;
 
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
             Cursor.visible = forceVisibleCursor;
             Cursor.lockState = forceVisibleCursor ? CursorLockMode.None : CursorLockMode.Locked;
 
@@ -977,7 +997,7 @@ namespace Desalgoritmizacao.World
                 return;
             }
 
-            bool eligible = app != null && app.IsDashboardScreen && currentStation == StationType.None && !isPrinterPending && !isExitPromptVisible;
+            bool eligible = !IsUsingGameplayMechanic();
             if (!eligible)
             {
                 return;
