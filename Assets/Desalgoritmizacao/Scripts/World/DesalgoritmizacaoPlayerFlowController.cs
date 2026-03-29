@@ -83,6 +83,7 @@ namespace Desalgoritmizacao.World
         private bool stationAllowsUiInteraction;
         private bool stationAllowsTemporaryLook;
         private bool printerAwaitingFreshEntry;
+        private bool pcAwaitingFreshEntry;
         private bool isExitPromptVisible;
         private bool isPrinterPending;
         private bool isPrinterRunning;
@@ -265,10 +266,7 @@ namespace Desalgoritmizacao.World
 
             if (other == triggerPc)
             {
-                if (!isPrinterPending && !isPrinterRunning && !isAtendimentoRequested && !isExitPromptVisible && currentStation == StationType.None)
-                {
-                    DockAtStation(StationType.Pc, triggerPc, localCamPc, true, true);
-                }
+                TryEnterPcStation();
                 return;
             }
 
@@ -295,6 +293,40 @@ namespace Desalgoritmizacao.World
             {
                 CompleteAtendimento();
             }
+        }
+
+
+        private void OnTriggerStay(Collider other)
+        {
+            if (other == null || currentStation != StationType.None || isExitPromptVisible || isAtendimentoRequested)
+            {
+                return;
+            }
+
+            if (other == triggerPc)
+            {
+                TryEnterPcStation();
+            }
+        }
+
+        private void TryEnterPcStation()
+        {
+            if (triggerPc == null || localCamPc == null || currentStation != StationType.None)
+            {
+                return;
+            }
+
+            if (pcAwaitingFreshEntry || isPrinterPending || isPrinterRunning || isAtendimentoRequested || isExitPromptVisible)
+            {
+                return;
+            }
+
+            if (!gameplayStarted || app == null || !app.IsDashboardScreen)
+            {
+                return;
+            }
+
+            DockAtStation(StationType.Pc, triggerPc, localCamPc, true, true);
         }
 
         private void ConfigurePhysics()
@@ -813,6 +845,7 @@ namespace Desalgoritmizacao.World
                 return;
             }
 
+            StationType releasedStation = currentStation;
             RestoreSavedStationExitPose();
             currentStation = StationType.None;
             currentStationTrigger = null;
@@ -823,6 +856,12 @@ namespace Desalgoritmizacao.World
             stationLookPitchOffset = 0f;
             bodyYaw = transform.eulerAngles.y;
             cameraPitch = NormalizeAngle(targetCamera.transform.localEulerAngles.x);
+
+            if (releasedStation == StationType.Pc)
+            {
+                pcAwaitingFreshEntry = IsPlayerInsideTrigger(triggerPc);
+            }
+
             RefreshPrinterUi();
         }
 
@@ -1326,6 +1365,11 @@ namespace Desalgoritmizacao.World
 
         private void UpdatePendingPrinterEntryState()
         {
+            if (pcAwaitingFreshEntry && !IsPlayerInsideTrigger(triggerPc))
+            {
+                pcAwaitingFreshEntry = false;
+            }
+
             if (isPrinterPending && printerAwaitingFreshEntry && !IsPlayerInsideTrigger(triggerImpressora))
             {
                 printerAwaitingFreshEntry = false;
