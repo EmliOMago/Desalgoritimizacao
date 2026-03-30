@@ -24,6 +24,7 @@ namespace Desalgoritmizacao.Data
         public string subtitle = "Acione as setas na ordem certa para concluir a impressão.";
         public string successMessage = "Registro impresso. Retorne ao terminal.";
         public string failureMessage = "Falha na impressão. Reiniciando sequência.";
+        public string pendingMessage = "Vá até a impressora para concluir a impressão dos documentos";
 
         public Texture2D ResolveTexture(PrinterDirection direction)
         {

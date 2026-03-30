@@ -1030,6 +1030,7 @@ namespace Desalgoritmizacao.World
             printerRestartAt = 0f;
             activePrinterRun = null;
             isPrinterRunning = false;
+            ShowTemporaryBanner(printerConfig != null ? printerConfig.pendingMessage : "Vá até a impressora para concluir a impressão dos documentos");
             RefreshStationTriggerAvailability();
 
             if (currentStation == StationType.Pc)
