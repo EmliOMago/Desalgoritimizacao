@@ -91,6 +91,7 @@ namespace Desalgoritmizacao.World
         private bool isPrinterPending;
         private bool isPrinterRunning;
         private bool isAtendimentoRequested;
+        private bool isAtendimentoReadyForInteraction;
         private DesalgoritmizacaoAtendimentoNpc activeAtendimentoNpc;
         private bool gameplayStarted;
         private float nextAtendimentoRequestAt;
@@ -294,7 +295,7 @@ namespace Desalgoritmizacao.World
                 return;
             }
 
-            if (other == triggerAtendimento && isAtendimentoRequested)
+            if (other == triggerAtendimento && isAtendimentoRequested && isAtendimentoReadyForInteraction)
             {
                 CompleteAtendimento();
             }
@@ -555,7 +556,10 @@ namespace Desalgoritmizacao.World
 
         private bool CanDriveFreeRoam()
         {
-            return IsInFreeRoamExploration();
+            return gameplayStarted &&
+                   currentStation == StationType.None &&
+                   !isPrinterRunning &&
+                   !isExitPromptVisible;
         }
 
         private bool IsUsingGameplayMechanic()
@@ -719,6 +723,7 @@ namespace Desalgoritmizacao.World
             if (isAtendimentoRequested)
             {
                 isAtendimentoRequested = false;
+                isAtendimentoReadyForInteraction = false;
                 ScheduleNextAtendimento();
             }
 
@@ -1340,6 +1345,7 @@ namespace Desalgoritmizacao.World
                 if (isAtendimentoRequested)
                 {
                     isAtendimentoRequested = false;
+                    isAtendimentoReadyForInteraction = false;
                     ScheduleNextAtendimento();
                 }
 
@@ -1365,6 +1371,7 @@ namespace Desalgoritmizacao.World
         private void CompleteAtendimento()
         {
             isAtendimentoRequested = false;
+            isAtendimentoReadyForInteraction = false;
             ShowTemporaryBanner("Atendimento concluído");
 
             if (activeAtendimentoNpc != null)
@@ -1387,6 +1394,7 @@ namespace Desalgoritmizacao.World
             if (pontoEntrada == null || pontoAtendimento == null || pontoSaida == null)
             {
                 isAtendimentoRequested = true;
+                isAtendimentoReadyForInteraction = false;
                 ShowTemporaryBanner("Atendimento solicitado");
                 return;
             }
@@ -1395,6 +1403,7 @@ namespace Desalgoritmizacao.World
             if (npcPrefabs == null || npcPrefabs.Length == 0)
             {
                 isAtendimentoRequested = true;
+                isAtendimentoReadyForInteraction = false;
                 ShowTemporaryBanner("Atendimento solicitado");
                 return;
             }
@@ -1405,6 +1414,9 @@ namespace Desalgoritmizacao.World
             npcRoot.transform.rotation = pontoEntrada.rotation;
 
             activeAtendimentoNpc = npcRoot.AddComponent<DesalgoritmizacaoAtendimentoNpc>();
+            isAtendimentoRequested = true;
+            isAtendimentoReadyForInteraction = false;
+            ShowTemporaryBanner("Atendimento solicitado");
             activeAtendimentoNpc.Initialize(visualPrefab, pontoAtendimento, pontoSaida, transform, OnAtendimentoNpcReachedDesk, OnAtendimentoNpcExited);
         }
 
@@ -1416,6 +1428,7 @@ namespace Desalgoritmizacao.World
             }
 
             isAtendimentoRequested = true;
+            isAtendimentoReadyForInteraction = true;
             ShowTemporaryBanner("Atendimento solicitado");
         }
 
@@ -1442,6 +1455,7 @@ namespace Desalgoritmizacao.World
             }
 
             isAtendimentoRequested = false;
+            isAtendimentoReadyForInteraction = false;
             if (scheduleNextRequest)
             {
                 ScheduleNextAtendimento();
