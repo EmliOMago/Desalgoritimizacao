@@ -604,7 +604,7 @@ namespace Desalgoritmizacao.World
 
         private void UpdateFreeLook()
         {
-            Vector2 lookValue = lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;
+            Vector2 lookValue = ReadLookValue();
             if (lookValue.sqrMagnitude <= 0.0001f)
             {
                 return;
@@ -629,6 +629,49 @@ namespace Desalgoritmizacao.World
             {
                 ReleaseCurrentStation();
             }
+        }
+
+        private Vector2 ReadLookValue()
+        {
+            Vector2 lookValue = lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;
+
+#if ENABLE_INPUT_SYSTEM
+            if (Mouse.current != null)
+            {
+                Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+                if (Mathf.Abs(lookValue.x) <= 0.0001f && Mathf.Abs(mouseDelta.x) > 0.0001f)
+                {
+                    lookValue.x = mouseDelta.x;
+                }
+
+                if (Mathf.Abs(lookValue.y) <= 0.0001f && Mathf.Abs(mouseDelta.y) > 0.0001f)
+                {
+                    lookValue.y = mouseDelta.y;
+                }
+            }
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (Mathf.Abs(lookValue.x) <= 0.0001f)
+            {
+                float legacyX = Input.GetAxisRaw("Mouse X") * 15f;
+                if (Mathf.Abs(legacyX) > 0.0001f)
+                {
+                    lookValue.x = legacyX;
+                }
+            }
+
+            if (Mathf.Abs(lookValue.y) <= 0.0001f)
+            {
+                float legacyY = Input.GetAxisRaw("Mouse Y") * 15f;
+                if (Mathf.Abs(legacyY) > 0.0001f)
+                {
+                    lookValue.y = legacyY;
+                }
+            }
+#endif
+
+            return lookValue;
         }
 
         private void UpdatePrinterDock()
